@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import type { Photo, Tirage } from '../types'
+import { emptyExposition, emptyBandeTest } from '../types'
 
 interface ChambreNoireDB extends DBSchema {
   photos: {
@@ -33,6 +34,14 @@ function getDB() {
 
 function makeId() {
   return crypto.randomUUID()
+}
+
+function normalizeTirage(tirage: Tirage): Tirage {
+  return {
+    ...tirage,
+    exposition: { ...emptyExposition(), ...tirage.exposition },
+    bandeTest: tirage.bandeTest ?? emptyBandeTest(),
+  }
 }
 
 export async function addPhoto(data: Omit<Photo, 'id' | 'createdAt'>): Promise<Photo> {
@@ -81,12 +90,13 @@ export async function updateTirage(tirage: Tirage): Promise<void> {
 export async function getTirages(photoId: string): Promise<Tirage[]> {
   const db = await getDB()
   const tirages = await db.getAllFromIndex('tirages', 'by-photoId', photoId)
-  return tirages.sort((a, b) => a.createdAt - b.createdAt)
+  return tirages.sort((a, b) => a.createdAt - b.createdAt).map(normalizeTirage)
 }
 
 export async function getTirage(id: string): Promise<Tirage | undefined> {
   const db = await getDB()
-  return db.get('tirages', id)
+  const tirage = await db.get('tirages', id)
+  return tirage ? normalizeTirage(tirage) : undefined
 }
 
 export async function deleteTirage(id: string): Promise<void> {

@@ -13,6 +13,36 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
   return (
     <section className="card">
       <h2>Exposition de base</h2>
+      <h3>Matériel</h3>
+      <div className="field-row">
+        <label className="field-label">
+          Agrandisseur
+          <input
+            className="field-input"
+            value={value.agrandisseur}
+            onChange={(e) => set('agrandisseur', e.target.value)}
+            placeholder="ex : LPL 7700"
+          />
+        </label>
+        <label className="field-label">
+          Optique
+          <input
+            className="field-input"
+            value={value.optique}
+            onChange={(e) => set('optique', e.target.value)}
+            placeholder="ex : Rodagon 50mm f/2.8"
+          />
+        </label>
+        <label className="field-label">
+          Hauteur de colonne
+          <input
+            className="field-input"
+            value={value.hauteurColonne}
+            onChange={(e) => set('hauteurColonne', e.target.value)}
+            placeholder="ex : 35 cm"
+          />
+        </label>
+      </div>
       <div className="field-row">
         <label className="field-label">
           Temps d'exposition (s)

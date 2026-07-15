@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addTirage, getPhoto, getTirages } from '../db/db'
 import type { Photo, Tirage } from '../types'
-import { emptyChimie, emptyExposition } from '../types'
+import { emptyBandeTest, emptyChimie, emptyExposition } from '../types'
 import BlobImage from '../components/BlobImage'
 
 interface PhotoDetailPageProps {
@@ -28,13 +28,21 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
   }
 
   async function handleNewTirage() {
+    const previous = tirages[tirages.length - 1]
+    const exposition = emptyExposition()
+    if (previous) {
+      exposition.agrandisseur = previous.exposition.agrandisseur
+      exposition.optique = previous.exposition.optique
+      exposition.hauteurColonne = previous.exposition.hauteurColonne
+    }
     const tirage = await addTirage({
       photoId,
       label: `Tirage ${tirages.length + 1}`,
-      exposition: emptyExposition(),
+      exposition,
       chimie: emptyChimie(),
       printImageBlob: null,
       dodgeBurnZones: [],
+      bandeTest: emptyBandeTest(),
       notes: '',
     })
     onSelectTirage(tirage.id)

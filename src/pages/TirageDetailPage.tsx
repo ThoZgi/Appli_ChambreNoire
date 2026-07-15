@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { getTirage, updateTirage } from '../db/db'
-import type { Chimie, DodgeBurnZone, Exposition, Tirage } from '../types'
+import type { BandeTest, Chimie, DodgeBurnZone, Exposition, Tirage } from '../types'
 import ExposureForm from '../components/ExposureForm'
+import BandeTestForm from '../components/BandeTestForm'
 import ChemistryForm from '../components/ChemistryForm'
 import PhotoUpload from '../components/PhotoUpload'
 import DodgeBurnCanvas from '../components/DodgeBurnCanvas'
@@ -50,6 +51,17 @@ export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageP
     setTirage((prev) => (prev ? { ...prev, [key]: value } : prev))
   }
 
+  function handleBandeTestChange(bandeTest: BandeTest, selectedTime?: string) {
+    setTirage((prev) => {
+      if (!prev) return prev
+      const next = { ...prev, bandeTest }
+      if (selectedTime !== undefined) {
+        next.exposition = { ...prev.exposition, tempsBase: selectedTime }
+      }
+      return next
+    })
+  }
+
   if (loading) return <p className="muted">Chargement…</p>
   if (!tirage) return <p className="muted">Tirage introuvable.</p>
 
@@ -73,6 +85,8 @@ export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageP
       </h1>
 
       <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+
+      <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
 
       <ChemistryForm value={tirage.chimie} onChange={(v: Chimie) => updateField('chimie', v)} />
 

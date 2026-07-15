@@ -1,25 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
+import { STOP_PRESETS, formatStops } from '../utils/stops'
 
 interface DodgeBurnCanvasProps {
   photoBlob: Blob
   zones: DodgeBurnZone[]
   onZonesChange: (zones: DodgeBurnZone[]) => void
-}
-
-const STOP_PRESETS = [0.125, 0.25, 0.333, 0.5, 1, 2]
-
-function formatStops(stops: number): string {
-  const preset: Record<string, string> = {
-    '0.125': '1/8',
-    '0.25': '1/4',
-    '0.333': '1/3',
-    '0.5': '1/2',
-  }
-  const key = stops.toString()
-  if (preset[key]) return preset[key]
-  return Number.isInteger(stops) ? `${stops}` : stops.toFixed(2)
 }
 
 function zoneLabel(zone: DodgeBurnZone): string {
@@ -163,12 +150,12 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange }: Dod
           <span className="field-label-inline">Valeur :</span>
           {STOP_PRESETS.map((preset) => (
             <button
-              key={preset}
+              key={preset.value}
               type="button"
-              className={stops === preset ? 'chip chip-active' : 'chip'}
-              onClick={() => setStops(preset)}
+              className={stops === preset.value ? 'chip chip-active' : 'chip'}
+              onClick={() => setStops(preset.value)}
             >
-              {formatStops(preset)}
+              {preset.label}
             </button>
           ))}
           <input

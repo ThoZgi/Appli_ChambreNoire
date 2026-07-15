@@ -21,6 +21,9 @@ export interface Chimie {
 }
 
 export interface Exposition {
+  agrandisseur: string
+  optique: string
+  hauteurColonne: string
   tempsBase: string
   ouverture: string
   filtreContraste: string
@@ -37,6 +40,18 @@ export interface DodgeBurnZone {
   brushSize: number
 }
 
+export interface BandeTestStep {
+  id: string
+  note: string
+  selected: boolean
+}
+
+export interface BandeTest {
+  tempsDepart: string
+  incrementStops: number
+  steps: BandeTestStep[]
+}
+
 export interface Tirage {
   id: string
   photoId: string
@@ -46,6 +61,7 @@ export interface Tirage {
   chimie: Chimie
   printImageBlob: Blob | null
   dodgeBurnZones: DodgeBurnZone[]
+  bandeTest: BandeTest
   notes: string
 }
 
@@ -54,7 +70,15 @@ export function emptyChemistryStep(): ChemistryStep {
 }
 
 export function emptyExposition(): Exposition {
-  return { tempsBase: '', ouverture: '', filtreContraste: '', notesSelection: '' }
+  return {
+    agrandisseur: '',
+    optique: '',
+    hauteurColonne: '',
+    tempsBase: '',
+    ouverture: '',
+    filtreContraste: '',
+    notesSelection: '',
+  }
 }
 
 export function emptyChimie(): Chimie {
@@ -63,5 +87,13 @@ export function emptyChimie(): Chimie {
     bainArret: emptyChemistryStep(),
     fixateur: emptyChemistryStep(),
     notes: '',
+  }
+}
+
+export function emptyBandeTest(): BandeTest {
+  return {
+    tempsDepart: '',
+    incrementStops: 1 / 3,
+    steps: Array.from({ length: 5 }, () => ({ id: crypto.randomUUID(), note: '', selected: false })),
   }
 }
