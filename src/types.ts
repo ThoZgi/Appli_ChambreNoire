@@ -2,7 +2,7 @@ export interface Photo {
   id: string
   name: string
   createdAt: number
-  imageBlob: Blob
+  imageBlob: Blob | null
   notes: string
 }
 

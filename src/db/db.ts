@@ -62,6 +62,13 @@ export async function getPhoto(id: string): Promise<Photo | undefined> {
   return db.get('photos', id)
 }
 
+export async function setPhotoImage(photoId: string, imageBlob: Blob): Promise<void> {
+  const db = await getDB()
+  const photo = await db.get('photos', photoId)
+  if (!photo) return
+  await db.put('photos', { ...photo, imageBlob })
+}
+
 export async function deletePhoto(id: string): Promise<void> {
   const db = await getDB()
   const tx = db.transaction(['photos', 'tirages'], 'readwrite')

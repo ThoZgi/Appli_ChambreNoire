@@ -63,7 +63,11 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
       </div>
 
       <div className="photo-detail-hero">
-        <BlobImage blob={photo.imageBlob} alt={photo.name} className="photo-detail-img" />
+        {photo.imageBlob ? (
+          <BlobImage blob={photo.imageBlob} alt={photo.name} className="photo-detail-img" />
+        ) : (
+          <div className="photo-detail-img photo-placeholder">Pas encore de tirage</div>
+        )}
         <div>
           <h1>{photo.name}</h1>
           {photo.notes && <p className="muted">{photo.notes}</p>}

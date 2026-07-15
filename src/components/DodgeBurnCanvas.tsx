@@ -14,6 +14,36 @@ function zoneLabel(zone: DodgeBurnZone): string {
   return `${typeLabel} +${formatStops(zone.stops)} stop`
 }
 
+function drawZoneLabel(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  zone: { type: DodgeBurnType; stops: number; path: { x: number; y: number }[] },
+) {
+  if (zone.path.length === 0) return
+  const cx = zone.path.reduce((sum, p) => sum + p.x, 0) / zone.path.length
+  const cy = zone.path.reduce((sum, p) => sum + p.y, 0) / zone.path.length
+  const x = cx * canvas.width
+  const y = cy * canvas.height
+
+  const label = `${zone.type === 'dodge' ? '-' : '+'}${formatStops(zone.stops)}`
+  const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
+
+  ctx.font = 'bold 13px system-ui, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  const paddingX = 6
+  const width = ctx.measureText(label).width + paddingX * 2
+  const height = 18
+
+  ctx.fillStyle = `rgba(${color}, 0.95)`
+  ctx.beginPath()
+  ctx.roundRect(x - width / 2, y - height / 2, width, height, 4)
+  ctx.fill()
+
+  ctx.fillStyle = '#fff'
+  ctx.fillText(label, x, y + 1)
+}
+
 function relativePoint(
   e: { clientX: number; clientY: number },
   canvas: HTMLCanvasElement,
@@ -63,6 +93,7 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange }: Dod
         ctx.lineTo(p.x * canvas.width, p.y * canvas.height)
       }
       ctx.stroke()
+      drawZoneLabel(ctx, canvas, zone)
     }
   }
 

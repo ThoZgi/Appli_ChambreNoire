@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { addPhoto, getPhotos } from '../db/db'
 import type { Photo } from '../types'
 import BlobImage from '../components/BlobImage'
-import PhotoUpload from '../components/PhotoUpload'
 
 interface PhotoListPageProps {
   onSelectPhoto: (id: string) => void
@@ -13,7 +12,6 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
-  const [imageBlob, setImageBlob] = useState<Blob | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -28,11 +26,10 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!imageBlob || !name.trim()) return
-    await addPhoto({ name: name.trim(), notes, imageBlob })
+    if (!name.trim()) return
+    await addPhoto({ name: name.trim(), notes, imageBlob: null })
     setName('')
     setNotes('')
-    setImageBlob(null)
     setShowForm(false)
     await refresh()
   }
@@ -58,7 +55,6 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
               required
             />
           </label>
-          <PhotoUpload label="Photo de référence (négatif scanné)" value={imageBlob} onChange={setImageBlob} />
           <label className="field-label">
             Notes
             <textarea
@@ -68,7 +64,7 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
               rows={2}
             />
           </label>
-          <button type="submit" className="btn-primary" disabled={!imageBlob || !name.trim()}>
+          <button type="submit" className="btn-primary" disabled={!name.trim()}>
             Enregistrer la photo
           </button>
         </form>
@@ -83,7 +79,11 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
       <div className="photo-grid">
         {photos.map((photo) => (
           <button key={photo.id} className="photo-card" onClick={() => onSelectPhoto(photo.id)}>
-            <BlobImage blob={photo.imageBlob} alt={photo.name} className="photo-card-img" />
+            {photo.imageBlob ? (
+              <BlobImage blob={photo.imageBlob} alt={photo.name} className="photo-card-img" />
+            ) : (
+              <div className="photo-card-img photo-placeholder">Pas encore de tirage</div>
+            )}
             <span className="photo-card-name">{photo.name}</span>
           </button>
         ))}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getTirage, updateTirage } from '../db/db'
+import { getTirage, setPhotoImage, updateTirage } from '../db/db'
 import type { BandeTest, Chimie, DodgeBurnZone, Exposition, Tirage } from '../types'
 import ExposureForm from '../components/ExposureForm'
 import BandeTestForm from '../components/BandeTestForm'
@@ -95,7 +95,10 @@ export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageP
         <PhotoUpload
           label="Photo du premier tirage"
           value={tirage.printImageBlob}
-          onChange={(blob) => updateField('printImageBlob', blob)}
+          onChange={(blob) => {
+            updateField('printImageBlob', blob)
+            setPhotoImage(tirage.photoId, blob)
+          }}
         />
       </section>
 
