@@ -40,6 +40,40 @@ body {
   min-height: 100svh;
 }
 
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.main-nav-title {
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-right: auto;
+}
+
+.main-nav-tab {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.main-nav-tab:hover {
+  color: var(--text);
+}
+
+.main-nav-tab-active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
 h1,
 h2,
 h3 {
@@ -87,6 +121,17 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-locked {
+  pointer-events: none;
+  user-select: none;
 }
 
 .save-status {
@@ -208,20 +253,57 @@ button {
 }
 
 .photo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  cursor: pointer;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  cursor: pointer;
   color: var(--text);
   text-align: left;
 }
 
 .photo-card:hover {
   border-color: var(--accent);
+}
+
+.status-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-elevated);
+  z-index: 1;
+}
+
+.status-badge-termine {
+  background: #4caf50;
+}
+
+.status-badge-en-cours {
+  background: #ff9800;
+}
+
+.card-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.card-delete-btn:hover {
+  color: rgb(var(--burn));
+  background: var(--bg-input);
 }
 
 .photo-card-img {
@@ -271,18 +353,29 @@ button {
 .tirage-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
-  color: var(--text);
-  text-align: left;
+  padding: 6px;
 }
 
 .tirage-card:hover {
   border-color: var(--accent);
+}
+
+.tirage-card-open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  text-align: left;
 }
 
 .tirage-card-img {
@@ -496,4 +589,115 @@ button {
 
 .teststrip-note {
   flex: 1 1 160px;
+}
+
+.negatif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.negatif-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.negatif-reference {
+  flex: 0 1 100px;
+}
+
+.negatif-note {
+  flex: 1 1 160px;
+}
+
+.negatif-compensation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.negatif-details summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 8px 0;
+  user-select: none;
+}
+
+.negatif-details summary:hover {
+  color: var(--text);
+}
+
+.negatif-details[open] summary {
+  margin-bottom: 8px;
+}
+
+.split-grading-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.split-grading-block {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.split-grading-block:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.highlight-zone-wrap {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: crosshair;
+}
+
+.highlight-zone-img {
+  width: 100%;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.highlight-zone-marker {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  margin-top: -10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(255, 210, 60, 0.85);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.agitation-field {
+  flex: 1 1 100%;
+}
+
+.agitation-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }

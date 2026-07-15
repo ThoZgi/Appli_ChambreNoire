@@ -1,33 +1,39 @@
 import { useEffect, useRef, useState } from 'react'
-import { getTirage, setPhotoImage, updateTirage } from '../db/db'
-import type { BandeTest, Chimie, DodgeBurnZone, Exposition, Tirage } from '../types'
+import { deleteTirage, getTirage, setPhotoImage, updateTirage } from '../db/db'
+import type { BandeTest, Chimie, DodgeBurnZone, Exposition, SplitGrading, Tirage, TirageStatut, Virage } from '../types'
 import ExposureForm from '../components/ExposureForm'
 import BandeTestForm from '../components/BandeTestForm'
 import ChemistryForm from '../components/ChemistryForm'
 import PhotoUpload from '../components/PhotoUpload'
+import SplitGradingForm from '../components/SplitGradingForm'
+import ToningForm from '../components/ToningForm'
 import DodgeBurnCanvas from '../components/DodgeBurnCanvas'
 
 interface TirageDetailPageProps {
   tirageId: string
-  onBack: (photoId: string) => void
+  startUnlocked?: boolean
+  onBack: () => void
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved'
 
-export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageProps) {
+export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: TirageDetailPageProps) {
   const [tirage, setTirage] = useState<Tirage | null>(null)
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [locked, setLocked] = useState(!startUnlocked)
   const saveTimeout = useRef<number | null>(null)
   const skipNextSave = useRef(true)
 
   useEffect(() => {
     setLoading(true)
     skipNextSave.current = true
+    setLocked(!startUnlocked)
     getTirage(tirageId).then((t) => {
       setTirage(t ?? null)
       setLoading(false)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tirageId])
 
   useEffect(() => {
@@ -62,18 +68,39 @@ export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageP
     })
   }
 
+  async function handleDelete() {
+    if (!tirage) return
+    if (!window.confirm(`Supprimer "${tirage.label}" ? Cette action est irréversible.`)) return
+    await deleteTirage(tirage.id)
+    onBack()
+  }
+
   if (loading) return <p className="muted">Chargement…</p>
   if (!tirage) return <p className="muted">Tirage introuvable.</p>
 
   return (
     <div className="page">
       <div className="page-header">
-        <button className="btn-link" onClick={() => onBack(tirage.photoId)}>
+        <button className="btn-link" onClick={onBack}>
           ← Retour à la photo
         </button>
-        <span className="save-status muted">
-          {saveStatus === 'saving' ? 'Enregistrement…' : saveStatus === 'saved' ? 'Enregistré' : ''}
-        </span>
+        <div className="page-header-actions">
+          {locked ? (
+            <button className="btn-primary" onClick={() => setLocked(false)}>
+              Modifier
+            </button>
+          ) : (
+            <button className="btn-link" onClick={() => setLocked(true)}>
+              Verrouiller
+            </button>
+          )}
+          <button className="btn-link" onClick={handleDelete}>
+            🗑 Supprimer
+          </button>
+          <span className="save-status muted">
+            {saveStatus === 'saving' ? 'Enregistrement…' : saveStatus === 'saved' ? 'Enregistré' : ''}
+          </span>
+        </div>
       </div>
 
       <h1>
@@ -81,52 +108,87 @@ export default function TirageDetailPage({ tirageId, onBack }: TirageDetailPageP
           className="tirage-title-input"
           value={tirage.label}
           onChange={(e) => updateField('label', e.target.value)}
+          disabled={locked}
         />
       </h1>
 
-      <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+      <div className="stops-row">
+        <span className="field-label-inline">Statut :</span>
+        <button
+          type="button"
+          className={tirage.statut === 'en_cours' ? 'chip chip-active' : 'chip'}
+          onClick={() => updateField('statut', 'en_cours' as TirageStatut)}
+          disabled={locked}
+        >
+          En cours
+        </button>
+        <button
+          type="button"
+          className={tirage.statut === 'termine' ? 'chip chip-active' : 'chip'}
+          onClick={() => updateField('statut', 'termine' as TirageStatut)}
+          disabled={locked}
+        >
+          Terminé
+        </button>
+      </div>
 
-      <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
+      <div className={locked ? 'page-locked' : ''}>
+        <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
 
-      <ChemistryForm value={tirage.chimie} onChange={(v: Chimie) => updateField('chimie', v)} />
+        <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
 
-      <section className="card">
-        <h2>Photo du tirage</h2>
-        <PhotoUpload
-          label="Photo du premier tirage"
-          value={tirage.printImageBlob}
-          onChange={(blob) => {
-            updateField('printImageBlob', blob)
-            setPhotoImage(tirage.photoId, blob)
-          }}
+        <ChemistryForm
+          value={tirage.chimie}
+          onChange={(v: Chimie) => updateField('chimie', v)}
+          showRincage={tirage.exposition.papierBaryte}
         />
-      </section>
 
-      {tirage.printImageBlob && (
         <section className="card">
-          <h2>Dodge &amp; Burn</h2>
-          <p className="muted">
-            Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn), avec la
-            valeur en stops.
-          </p>
-          <DodgeBurnCanvas
-            photoBlob={tirage.printImageBlob}
-            zones={tirage.dodgeBurnZones}
-            onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+          <h2>Photo du tirage</h2>
+          <PhotoUpload
+            label="Photo du premier tirage"
+            value={tirage.printImageBlob}
+            onChange={(blob) => {
+              updateField('printImageBlob', blob)
+              setPhotoImage(tirage.photoId, blob)
+            }}
           />
         </section>
-      )}
 
-      <section className="card">
-        <h2>Notes / résultat</h2>
-        <textarea
-          className="field-input"
-          rows={4}
-          value={tirage.notes}
-          onChange={(e) => updateField('notes', e.target.value)}
-          placeholder="Observations sur le résultat final, corrections à apporter au prochain tirage..."
+        <SplitGradingForm
+          value={tirage.splitGrading}
+          onChange={(v: SplitGrading) => updateField('splitGrading', v)}
+          printImageBlob={tirage.printImageBlob}
         />
-      </section>
+
+        <ToningForm value={tirage.virage} onChange={(v: Virage) => updateField('virage', v)} />
+
+        {tirage.printImageBlob && (
+          <section className="card">
+            <h2>Dodge &amp; Burn</h2>
+            <p className="muted">
+              Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn), avec la
+              valeur en stops.
+            </p>
+            <DodgeBurnCanvas
+              photoBlob={tirage.printImageBlob}
+              zones={tirage.dodgeBurnZones}
+              onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+            />
+          </section>
+        )}
+
+        <section className="card">
+          <h2>Notes / résultat</h2>
+          <textarea
+            className="field-input"
+            rows={4}
+            value={tirage.notes}
+            onChange={(e) => updateField('notes', e.target.value)}
+            placeholder="Observations sur le résultat final, corrections à apporter au prochain tirage..."
+          />
+        </section>
+      </div>
     </div>
   )
 }

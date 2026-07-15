@@ -1,20 +1,24 @@
-import type { Chimie, ChemistryStep } from '../types'
+import type { ChemistryStep, DeveloppementChimie } from '../types'
 import { DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import SelectOrCustom from './SelectOrCustom'
+import AgitationPicker from './AgitationPicker'
 
-interface ChemistryFormProps {
-  value: Chimie
-  onChange: (value: Chimie) => void
-  showRincage?: boolean
+interface DevChemistryFormProps {
+  value: DeveloppementChimie
+  onChange: (value: DeveloppementChimie) => void
 }
 
-const STEP_LABELS: { key: keyof Pick<Chimie, 'revelateur' | 'bainArret' | 'fixateur' | 'rincage'>; label: string; options: string[] }[] = [
+const STEP_LABELS: {
+  key: keyof Pick<DeveloppementChimie, 'premouillage' | 'revelateur' | 'bainArret' | 'fixateur' | 'rincage'>
+  label: string
+  options: string[]
+}[] = [
+  { key: 'premouillage', label: 'Prémouillage', options: RINSE_PRESETS },
   { key: 'revelateur', label: 'Révélateur', options: DEVELOPER_PRESETS },
   { key: 'bainArret', label: "Bain d'arrêt", options: STOP_BATH_PRESETS },
   { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS },
+  { key: 'rincage', label: 'Rinçage', options: RINSE_PRESETS },
 ]
-
-const RINCAGE_STEP = { key: 'rincage' as const, label: 'Rinçage', options: RINSE_PRESETS }
 
 function StepFields({
   step,
@@ -55,7 +59,7 @@ function StepFields({
           className="field-input"
           value={step.temps}
           onChange={(e) => set('temps', e.target.value)}
-          placeholder="ex : 1 min"
+          placeholder="ex : 7 min"
         />
       </label>
       <label className="field-label">
@@ -71,26 +75,25 @@ function StepFields({
   )
 }
 
-export default function ChemistryForm({ value, onChange, showRincage }: ChemistryFormProps) {
-  const steps = showRincage ? [...STEP_LABELS, RINCAGE_STEP] : STEP_LABELS
+export default function DevChemistryForm({ value, onChange }: DevChemistryFormProps) {
   return (
     <section className="card">
       <h2>Chimie</h2>
-      {steps.map(({ key, label, options }) => (
+      {STEP_LABELS.map(({ key, label, options }) => (
         <div key={key} className="chemistry-step">
           <h3>{label}</h3>
           <StepFields step={value[key]} options={options} onChange={(step) => onChange({ ...value, [key]: step })} />
+          {key === 'revelateur' && (
+            <div className="agitation-field">
+              <span className="field-label-inline">Agitation</span>
+              <AgitationPicker
+                value={value.agitationRevelateur}
+                onChange={(v) => onChange({ ...value, agitationRevelateur: v })}
+              />
+            </div>
+          )}
         </div>
       ))}
-      <label className="field-label">
-        Notes
-        <textarea
-          className="field-input"
-          value={value.notes}
-          onChange={(e) => onChange({ ...value, notes: e.target.value })}
-          rows={2}
-        />
-      </label>
     </section>
   )
 }

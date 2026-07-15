@@ -4,6 +4,8 @@ export interface Photo {
   createdAt: number
   imageBlob: Blob | null
   notes: string
+  developpementId: string | null
+  negatifReference: string | null
 }
 
 export interface ChemistryStep {
@@ -17,6 +19,7 @@ export interface Chimie {
   revelateur: ChemistryStep
   bainArret: ChemistryStep
   fixateur: ChemistryStep
+  rincage: ChemistryStep
   notes: string
 }
 
@@ -24,6 +27,10 @@ export interface Exposition {
   agrandisseur: string
   optique: string
   hauteurColonne: string
+  typePapier: string
+  formatPapier: string
+  papierBaryte: boolean
+  filtreND: string
   tempsBase: string
   ouverture: string
   filtreContraste: string
@@ -52,6 +59,65 @@ export interface BandeTest {
   steps: BandeTestStep[]
 }
 
+export interface GradeTestStrip {
+  grade: string
+  bandeTest: BandeTest
+  tempsChoisi: string
+}
+
+export interface SplitGrading {
+  enabled: boolean
+  grade00: GradeTestStrip
+  gradeDur: GradeTestStrip
+  zoneHautesLumieres: { x: number; y: number } | null
+  noteZone: string
+}
+
+export interface Agitation {
+  premiereAgitation: string
+  typeAction: 'secondes' | 'inversions'
+  quantite: string
+  frequence: string
+}
+
+export interface DeveloppementChimie {
+  premouillage: ChemistryStep
+  revelateur: ChemistryStep
+  agitationRevelateur: Agitation
+  bainArret: ChemistryStep
+  fixateur: ChemistryStep
+  rincage: ChemistryStep
+}
+
+export interface NegatifRef {
+  id: string
+  reference: string
+  compensation: string
+  notes: string
+}
+
+export interface Developpement {
+  id: string
+  createdAt: number
+  nom: string
+  format: string
+  filmStock: string
+  sensibilite: string
+  negatifs: NegatifRef[]
+  chimie: DeveloppementChimie
+  notes: string
+}
+
+export interface Virage {
+  enabled: boolean
+  produit: string
+  dilution: string
+  temps: string
+  notes: string
+}
+
+export type TirageStatut = 'en_cours' | 'termine'
+
 export interface Tirage {
   id: string
   photoId: string
@@ -62,6 +128,9 @@ export interface Tirage {
   printImageBlob: Blob | null
   dodgeBurnZones: DodgeBurnZone[]
   bandeTest: BandeTest
+  splitGrading: SplitGrading
+  virage: Virage
+  statut: TirageStatut
   notes: string
 }
 
@@ -74,6 +143,10 @@ export function emptyExposition(): Exposition {
     agrandisseur: '',
     optique: '',
     hauteurColonne: '',
+    typePapier: '',
+    formatPapier: '',
+    papierBaryte: false,
+    filtreND: '',
     tempsBase: '',
     ouverture: '',
     filtreContraste: '',
@@ -86,14 +159,60 @@ export function emptyChimie(): Chimie {
     revelateur: emptyChemistryStep(),
     bainArret: emptyChemistryStep(),
     fixateur: emptyChemistryStep(),
+    rincage: emptyChemistryStep(),
     notes: '',
   }
+}
+
+export function emptyVirage(): Virage {
+  return { enabled: false, produit: '', dilution: '', temps: '', notes: '' }
 }
 
 export function emptyBandeTest(): BandeTest {
   return {
     tempsDepart: '',
     incrementStops: 1 / 3,
-    steps: Array.from({ length: 5 }, () => ({ id: crypto.randomUUID(), note: '', selected: false })),
+    steps: Array.from({ length: 7 }, () => ({ id: crypto.randomUUID(), note: '', selected: false })),
+  }
+}
+
+export function emptyGradeTestStrip(grade: string): GradeTestStrip {
+  return { grade, bandeTest: emptyBandeTest(), tempsChoisi: '' }
+}
+
+export function emptySplitGrading(): SplitGrading {
+  return {
+    enabled: false,
+    grade00: emptyGradeTestStrip('00'),
+    gradeDur: emptyGradeTestStrip('5'),
+    zoneHautesLumieres: null,
+    noteZone: '',
+  }
+}
+
+export function emptyAgitation(): Agitation {
+  return { premiereAgitation: '30', typeAction: 'inversions', quantite: '', frequence: '30' }
+}
+
+export function emptyDeveloppementChimie(): DeveloppementChimie {
+  return {
+    premouillage: emptyChemistryStep(),
+    revelateur: emptyChemistryStep(),
+    agitationRevelateur: emptyAgitation(),
+    bainArret: emptyChemistryStep(),
+    fixateur: emptyChemistryStep(),
+    rincage: emptyChemistryStep(),
+  }
+}
+
+export function emptyDeveloppement(): Omit<Developpement, 'id' | 'createdAt'> {
+  return {
+    nom: '',
+    format: '',
+    filmStock: '',
+    sensibilite: '',
+    negatifs: [],
+    chimie: emptyDeveloppementChimie(),
+    notes: '',
   }
 }

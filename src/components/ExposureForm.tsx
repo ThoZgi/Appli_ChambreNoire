@@ -1,4 +1,6 @@
 import type { Exposition } from '../types'
+import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS } from '../utils/paperPresets'
+import SelectOrCustom from './SelectOrCustom'
 
 interface ExposureFormProps {
   value: Exposition
@@ -43,6 +45,46 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
           />
         </label>
       </div>
+
+      <h3>Papier</h3>
+      <div className="field-row">
+        <label className="field-label">
+          Type de papier
+          <SelectOrCustom
+            value={value.typePapier}
+            options={PAPER_STOCK_PRESETS}
+            onChange={(v) => set('typePapier', v)}
+            placeholder="ex : papier personnalisé"
+          />
+        </label>
+        <label className="field-label">
+          Format papier
+          <SelectOrCustom
+            value={value.formatPapier}
+            options={PAPER_FORMAT_PRESETS}
+            onChange={(v) => set('formatPapier', v)}
+            placeholder="ex : 18x24"
+          />
+        </label>
+        <label className="field-label">
+          Filtre ND
+          <input
+            className="field-input"
+            value={value.filtreND}
+            onChange={(e) => set('filtreND', e.target.value)}
+            placeholder="ex : ND 2 stops"
+          />
+        </label>
+      </div>
+      <label className="split-grading-toggle">
+        <input
+          type="checkbox"
+          checked={value.papierBaryte}
+          onChange={(e) => set('papierBaryte', e.target.checked)}
+        />
+        Papier baryté (FB)
+      </label>
+
       <div className="field-row">
         <label className="field-label">
           Temps d'exposition (s)

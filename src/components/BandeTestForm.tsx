@@ -4,6 +4,7 @@ import { STOP_PRESETS } from '../utils/stops'
 interface BandeTestFormProps {
   value: BandeTest
   onChange: (value: BandeTest, selectedTime?: string) => void
+  title?: string
 }
 
 function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
@@ -11,7 +12,7 @@ function computeStepTime(tempsDepart: string, incrementStops: number, index: num
   return base * Math.pow(2, index * incrementStops)
 }
 
-export default function BandeTestForm({ value, onChange }: BandeTestFormProps) {
+export default function BandeTestForm({ value, onChange, title = 'Bande test' }: BandeTestFormProps) {
   function setTempsDepart(tempsDepart: string) {
     onChange({ ...value, tempsDepart })
   }
@@ -40,12 +41,12 @@ export default function BandeTestForm({ value, onChange }: BandeTestFormProps) {
     if (index === -1) return
     const steps = value.steps.map((s) => ({ ...s, selected: s.id === id }))
     const time = computeStepTime(value.tempsDepart, value.incrementStops, index)
-    onChange({ ...value, steps }, time.toFixed(1))
+    onChange({ ...value, steps }, time.toFixed(2))
   }
 
   return (
     <section className="card">
-      <h2>Bande test</h2>
+      <h2>{title}</h2>
       <p className="muted">
         Temps de départ et incrément en stops (comme sur le StopClock Pro) : le temps de chaque palier est calculé
         automatiquement.
@@ -98,7 +99,7 @@ export default function BandeTestForm({ value, onChange }: BandeTestFormProps) {
               className={step.selected ? 'teststrip-item teststrip-item-selected' : 'teststrip-item'}
             >
               <span className="teststrip-index">Palier {index + 1}</span>
-              <span className="teststrip-time">{time.toFixed(1)} s</span>
+              <span className="teststrip-time">{time.toFixed(2)} s</span>
               <input
                 className="field-input teststrip-note"
                 value={step.note}

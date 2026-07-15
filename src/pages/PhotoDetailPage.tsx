@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react'
-import { addTirage, getPhoto, getTirages } from '../db/db'
-import type { Photo, Tirage } from '../types'
-import { emptyBandeTest, emptyChimie, emptyExposition } from '../types'
+import { addTirage, deletePhoto, getDeveloppement, getPhoto, getTirages } from '../db/db'
+import type { Developpement, Photo, Tirage } from '../types'
+import { emptyBandeTest, emptyChimie, emptyExposition, emptySplitGrading, emptyVirage } from '../types'
 import BlobImage from '../components/BlobImage'
 
 interface PhotoDetailPageProps {
   photoId: string
   onBack: () => void
-  onSelectTirage: (id: string) => void
+  onSelectTirage: (id: string, startUnlocked?: boolean) => void
+  onSelectDeveloppement: (id: string) => void
 }
 
-export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: PhotoDetailPageProps) {
+export default function PhotoDetailPage({
+  photoId,
+  onBack,
+  onSelectTirage,
+  onSelectDeveloppement,
+}: PhotoDetailPageProps) {
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [tirages, setTirages] = useState<Tirage[]>([])
+  const [developpement, setDeveloppement] = useState<Developpement | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -24,6 +31,7 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
     const [p, t] = await Promise.all([getPhoto(photoId), getTirages(photoId)])
     setPhoto(p ?? null)
     setTirages(t)
+    setDeveloppement(p?.developpementId ? ((await getDeveloppement(p.developpementId)) ?? null) : null)
     setLoading(false)
   }
 
@@ -43,9 +51,19 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
       printImageBlob: null,
       dodgeBurnZones: [],
       bandeTest: emptyBandeTest(),
+      splitGrading: emptySplitGrading(),
+      virage: emptyVirage(),
+      statut: 'en_cours',
       notes: '',
     })
-    onSelectTirage(tirage.id)
+    onSelectTirage(tirage.id, true)
+  }
+
+  async function handleDelete() {
+    if (!photo) return
+    if (!window.confirm(`Supprimer "${photo.name}" et tous ses tirages ? Cette action est irréversible.`)) return
+    await deletePhoto(photo.id)
+    onBack()
   }
 
   if (loading) return <p className="muted">Chargement…</p>
@@ -57,9 +75,14 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
         <button className="btn-link" onClick={onBack}>
           ← Retour
         </button>
-        <button className="btn-primary" onClick={handleNewTirage}>
-          + Nouveau tirage
-        </button>
+        <div className="page-header-actions">
+          <button className="btn-primary" onClick={handleNewTirage}>
+            + Nouveau tirage
+          </button>
+          <button className="btn-link" onClick={handleDelete}>
+            🗑 Supprimer
+          </button>
+        </div>
       </div>
 
       <div className="photo-detail-hero">
@@ -71,6 +94,15 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
         <div>
           <h1>{photo.name}</h1>
           {photo.notes && <p className="muted">{photo.notes}</p>}
+          {developpement && (
+            <p className="muted">
+              Provenance :{' '}
+              <button type="button" className="btn-link" onClick={() => onSelectDeveloppement(developpement.id)}>
+                {developpement.nom}
+                {photo.negatifReference ? ` — négatif ${photo.negatifReference}` : ''}
+              </button>
+            </p>
+          )}
         </div>
       </div>
 
@@ -78,7 +110,7 @@ export default function PhotoDetailPage({ photoId, onBack, onSelectTirage }: Pho
       {tirages.length === 0 && <p className="muted">Aucun tirage pour l'instant.</p>}
       <div className="tirage-list">
         {tirages.map((tirage) => (
-          <button key={tirage.id} className="tirage-card" onClick={() => onSelectTirage(tirage.id)}>
+          <button key={tirage.id} className="tirage-card tirage-card-open" onClick={() => onSelectTirage(tirage.id)}>
             {tirage.printImageBlob && (
               <BlobImage blob={tirage.printImageBlob} alt={tirage.label} className="tirage-card-img" />
             )}
