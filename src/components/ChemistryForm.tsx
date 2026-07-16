@@ -1,4 +1,4 @@
-import type { Chimie, ChemistryStep } from '../types'
+import type { Chimie, ChemistryStep, ChimieStock, ChimieStockType } from '../types'
 import { PAPER_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import SelectOrCustom from './SelectOrCustom'
 import NumberStepper from './NumberStepper'
@@ -7,28 +7,48 @@ interface ChemistryFormProps {
   value: Chimie
   onChange: (value: Chimie) => void
   showRincage?: boolean
+  chimieStocks: ChimieStock[]
 }
 
-const STEP_LABELS: { key: keyof Pick<Chimie, 'revelateur' | 'bainArret' | 'fixateur' | 'rincage'>; label: string; options: string[] }[] = [
-  { key: 'revelateur', label: 'Révélateur', options: PAPER_DEVELOPER_PRESETS },
+interface StepConfig {
+  key: keyof Pick<Chimie, 'revelateur' | 'bainArret' | 'fixateur' | 'fixateurBain2' | 'rincage'>
+  label: string
+  options: string[]
+  stockType?: ChimieStockType
+}
+
+const STEP_LABELS: StepConfig[] = [
+  { key: 'revelateur', label: 'Révélateur', options: PAPER_DEVELOPER_PRESETS, stockType: 'developpeur' },
   { key: 'bainArret', label: "Bain d'arrêt", options: STOP_BATH_PRESETS },
-  { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS },
+  { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS, stockType: 'fixateur' },
 ]
 
-const RINCAGE_STEP = { key: 'rincage' as const, label: 'Rinçage', options: RINSE_PRESETS }
+const FIXATEUR_BAIN2_STEP: StepConfig = {
+  key: 'fixateurBain2',
+  label: 'Fixateur — bain 2',
+  options: FIXER_PRESETS,
+  stockType: 'fixateur',
+}
+const RINCAGE_STEP: StepConfig = { key: 'rincage', label: 'Rinçage', options: RINSE_PRESETS }
 
 function StepFields({
   step,
   options,
+  stockType,
+  chimieStocks,
   onChange,
 }: {
   step: ChemistryStep
   options: string[]
+  stockType?: ChimieStockType
+  chimieStocks: ChimieStock[]
   onChange: (step: ChemistryStep) => void
 }) {
   function set<K extends keyof ChemistryStep>(key: K, v: ChemistryStep[K]) {
     onChange({ ...step, [key]: v })
   }
+
+  const availableStocks = stockType ? chimieStocks.filter((s) => s.type === stockType) : []
 
   return (
     <div className="field-row">
@@ -76,19 +96,43 @@ function StepFields({
           <span className="muted">°C</span>
         </div>
       </label>
+      {stockType && (
+        <label className="field-label">
+          Bidon en cours
+          <select
+            className="field-input"
+            value={step.chimieStockId ?? ''}
+            onChange={(e) => set('chimieStockId', e.target.value || null)}
+          >
+            <option value="">Aucun</option>
+            {availableStocks.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.nom}
+                {s.statut === 'epuise' ? ' (épuisé)' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </div>
   )
 }
 
-export default function ChemistryForm({ value, onChange, showRincage }: ChemistryFormProps) {
-  const steps = showRincage ? [...STEP_LABELS, RINCAGE_STEP] : STEP_LABELS
+export default function ChemistryForm({ value, onChange, showRincage, chimieStocks }: ChemistryFormProps) {
+  const steps = showRincage ? [...STEP_LABELS, FIXATEUR_BAIN2_STEP, RINCAGE_STEP] : STEP_LABELS
   return (
     <section className="card">
       <h2>Chimie</h2>
-      {steps.map(({ key, label, options }) => (
+      {steps.map(({ key, label, options, stockType }) => (
         <div key={key} className="chemistry-step">
           <h3>{label}</h3>
-          <StepFields step={value[key]} options={options} onChange={(step) => onChange({ ...value, [key]: step })} />
+          <StepFields
+            step={value[key]}
+            options={options}
+            stockType={stockType}
+            chimieStocks={chimieStocks}
+            onChange={(step) => onChange({ ...value, [key]: step })}
+          />
         </div>
       ))}
       <label className="field-label">

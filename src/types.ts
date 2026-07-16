@@ -14,12 +14,14 @@ export interface ChemistryStep {
   dilution: string
   temps: string
   temperature: number
+  chimieStockId: string | null
 }
 
 export interface Chimie {
   revelateur: ChemistryStep
   bainArret: ChemistryStep
   fixateur: ChemistryStep
+  fixateurBain2: ChemistryStep
   rincage: ChemistryStep
   notes: string
 }
@@ -101,6 +103,20 @@ export interface NegatifRef {
   lieu: string
 }
 
+export type ChimieStockType = 'developpeur' | 'fixateur'
+export type ChimieStockStatut = 'actif' | 'epuise'
+
+export interface ChimieStock {
+  id: string
+  createdAt: number
+  nom: string
+  type: ChimieStockType
+  concentration: string
+  dateMiseEnService: string
+  statut: ChimieStockStatut
+  notes: string
+}
+
 export interface Developpement {
   id: string
   createdAt: number
@@ -155,7 +171,11 @@ export interface Tirage {
 }
 
 export function emptyChemistryStep(): ChemistryStep {
-  return { nom: '', dilution: '', temps: '', temperature: 20 }
+  return { nom: '', dilution: '', temps: '', temperature: 20, chimieStockId: null }
+}
+
+export function emptyChimieStock(): Omit<ChimieStock, 'id' | 'createdAt'> {
+  return { nom: '', type: 'developpeur', concentration: '', dateMiseEnService: '', statut: 'actif', notes: '' }
 }
 
 export function emptyExposition(): Exposition {
@@ -179,6 +199,7 @@ export function emptyChimie(): Chimie {
     revelateur: emptyChemistryStep(),
     bainArret: emptyChemistryStep(),
     fixateur: emptyChemistryStep(),
+    fixateurBain2: emptyChemistryStep(),
     rincage: emptyChemistryStep(),
     notes: '',
   }

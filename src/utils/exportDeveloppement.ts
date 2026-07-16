@@ -1,4 +1,4 @@
-import type { Developpement } from '../types'
+import type { ChimieStock, Developpement } from '../types'
 import { toCsv } from './csv'
 import { downloadBlob } from './download'
 import { slugify } from './slug'
@@ -14,6 +14,8 @@ const HEADER = [
   'revelateur_dilution',
   'revelateur_temps',
   'revelateur_temperature',
+  'revelateur_bidon',
+  'fixateur_bidon',
   'agitation_premiereAgitation',
   'agitation_typeAction',
   'agitation_quantite',
@@ -27,8 +29,9 @@ const HEADER = [
   'negatif_notes',
 ]
 
-export function exportDeveloppementCsv(developpement: Developpement): void {
+export function exportDeveloppementCsv(developpement: Developpement, chimieStocks: ChimieStock[] = []): void {
   const { chimie } = developpement
+  const stockName = (id: string | null) => chimieStocks.find((s) => s.id === id)?.nom ?? ''
   const sharedCells = [
     developpement.nom,
     developpement.format,
@@ -40,6 +43,8 @@ export function exportDeveloppementCsv(developpement: Developpement): void {
     chimie.revelateur.dilution,
     chimie.revelateur.temps,
     `${chimie.revelateur.temperature}°C`,
+    stockName(chimie.revelateur.chimieStockId),
+    stockName(chimie.fixateur.chimieStockId),
     chimie.agitationRevelateur.premiereAgitation,
     chimie.agitationRevelateur.typeAction,
     chimie.agitationRevelateur.quantite,

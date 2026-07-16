@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { Developpement, Photo, Tirage } from '../types'
+import type { ChimieStock, Developpement, Photo, Tirage } from '../types'
 import {
   emptyExposition,
   emptyBandeTest,
@@ -28,13 +28,18 @@ interface ChambreNoireDB extends DBSchema {
     value: Developpement
     indexes: { 'by-createdAt': number }
   }
+  chimieStocks: {
+    key: string
+    value: ChimieStock
+    indexes: { 'by-createdAt': number }
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<ChambreNoireDB>> | null = null
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<ChambreNoireDB>('chambre-noire', 2, {
+    dbPromise = openDB<ChambreNoireDB>('chambre-noire', 3, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const photos = db.createObjectStore('photos', { keyPath: 'id' })
@@ -46,6 +51,10 @@ function getDB() {
         if (oldVersion < 2) {
           const developpements = db.createObjectStore('developpements', { keyPath: 'id' })
           developpements.createIndex('by-createdAt', 'createdAt')
+        }
+        if (oldVersion < 3) {
+          const chimieStocks = db.createObjectStore('chimieStocks', { keyPath: 'id' })
+          chimieStocks.createIndex('by-createdAt', 'createdAt')
         }
       },
     })
@@ -66,9 +75,18 @@ function parseTemperature(value: unknown): number {
   return 20
 }
 
+function parseChimieStockId(value: unknown): string | null {
+  return typeof value === 'string' ? value : null
+}
+
 function cleanChemistryStep(step: unknown): ChemistryStep {
+  const raw = step as { temperature?: unknown; chimieStockId?: unknown } | undefined
   const merged = { ...emptyChemistryStep(), ...(step as object) }
-  return { ...merged, temperature: parseTemperature((step as { temperature?: unknown } | undefined)?.temperature) }
+  return {
+    ...merged,
+    temperature: parseTemperature(raw?.temperature),
+    chimieStockId: parseChimieStockId(raw?.chimieStockId),
+  }
 }
 
 function normalizeTirage(tirage: Tirage): Tirage {
@@ -81,6 +99,7 @@ function normalizeTirage(tirage: Tirage): Tirage {
       revelateur: cleanChemistryStep(chimie.revelateur),
       bainArret: cleanChemistryStep(chimie.bainArret),
       fixateur: cleanChemistryStep(chimie.fixateur),
+      fixateurBain2: cleanChemistryStep(chimie.fixateurBain2),
       rincage: cleanChemistryStep(chimie.rincage),
     },
     methodeExposition: tirage.methodeExposition ?? 'bandeTest',
@@ -98,6 +117,16 @@ function normalizePhoto(photo: Photo): Photo {
     developpementId: photo.developpementId ?? null,
     negatifReference: photo.negatifReference ?? null,
     version: photo.version ?? 1,
+  }
+}
+
+function normalizeChimieStock(stock: ChimieStock): ChimieStock {
+  return {
+    ...stock,
+    concentration: stock.concentration ?? '',
+    dateMiseEnService: stock.dateMiseEnService ?? '',
+    statut: stock.statut ?? 'actif',
+    notes: stock.notes ?? '',
   }
 }
 
@@ -229,4 +258,51 @@ export async function updateDeveloppement(developpement: Developpement): Promise
 export async function deleteDeveloppement(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('developpements', id)
+}
+
+export async function addChimieStock(data: Omit<ChimieStock, 'id' | 'createdAt'>): Promise<ChimieStock> {
+  const stock: ChimieStock = { ...data, id: makeId(), createdAt: Date.now() }
+  const db = await getDB()
+  await db.put('chimieStocks', stock)
+  return stock
+}
+
+export async function getChimieStocks(): Promise<ChimieStock[]> {
+  const db = await getDB()
+  const stocks = await db.getAllFromIndex('chimieStocks', 'by-createdAt')
+  return stocks.reverse().map(normalizeChimieStock)
+}
+
+export async function getChimieStock(id: string): Promise<ChimieStock | undefined> {
+  const db = await getDB()
+  const stock = await db.get('chimieStocks', id)
+  return stock ? normalizeChimieStock(stock) : undefined
+}
+
+export async function updateChimieStock(stock: ChimieStock): Promise<void> {
+  const db = await getDB()
+  await db.put('chimieStocks', stock)
+}
+
+export async function deleteChimieStock(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('chimieStocks', id)
+}
+
+export async function countChimieStockUsages(stockId: string): Promise<{ developpements: number; tirages: number }> {
+  const db = await getDB()
+  const [developpements, tirages] = await Promise.all([db.getAll('developpements'), db.getAll('tirages')])
+  const developpementCount = developpements.filter((d) => {
+    const chimie = d.chimie as unknown as Record<string, { chimieStockId?: unknown } | undefined>
+    return chimie.revelateur?.chimieStockId === stockId || chimie.fixateur?.chimieStockId === stockId
+  }).length
+  const tirageCount = tirages.filter((t) => {
+    const chimie = t.chimie as unknown as Record<string, { chimieStockId?: unknown } | undefined>
+    return (
+      chimie.revelateur?.chimieStockId === stockId ||
+      chimie.fixateur?.chimieStockId === stockId ||
+      chimie.fixateurBain2?.chimieStockId === stockId
+    )
+  }).length
+  return { developpements: developpementCount, tirages: tirageCount }
 }

@@ -4,6 +4,8 @@ import PhotoDetailPage from './pages/PhotoDetailPage'
 import TirageDetailPage from './pages/TirageDetailPage'
 import DeveloppementListPage from './pages/DeveloppementListPage'
 import DeveloppementDetailPage from './pages/DeveloppementDetailPage'
+import ChimieStockListPage from './pages/ChimieStockListPage'
+import ChimieStockDetailPage from './pages/ChimieStockDetailPage'
 
 type View =
   | { name: 'photos' }
@@ -11,9 +13,13 @@ type View =
   | { name: 'tirage'; tirageId: string; startUnlocked?: boolean }
   | { name: 'developpements' }
   | { name: 'developpement'; developpementId: string; startUnlocked?: boolean }
+  | { name: 'chimieStocks' }
+  | { name: 'chimieStock'; chimieStockId: string; startUnlocked?: boolean }
 
-function section(view: View): 'photos' | 'developpements' {
-  return view.name === 'developpements' || view.name === 'developpement' ? 'developpements' : 'photos'
+function section(view: View): 'photos' | 'developpements' | 'chimieStocks' {
+  if (view.name === 'developpements' || view.name === 'developpement') return 'developpements'
+  if (view.name === 'chimieStocks' || view.name === 'chimieStock') return 'chimieStocks'
+  return 'photos'
 }
 
 export default function App() {
@@ -50,6 +56,13 @@ export default function App() {
         >
           Tirages
         </button>
+        <button
+          type="button"
+          className={section(view) === 'chimieStocks' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}
+          onClick={() => resetTo({ name: 'chimieStocks' })}
+        >
+          Stock chimie
+        </button>
       </nav>
 
       {view.name === 'photos' && <PhotoListPage onSelectPhoto={(id) => push({ name: 'photo', photoId: id })} />}
@@ -79,6 +92,16 @@ export default function App() {
           startUnlocked={view.startUnlocked}
           onBack={pop}
         />
+      )}
+
+      {view.name === 'chimieStocks' && (
+        <ChimieStockListPage
+          onSelectChimieStock={(id, startUnlocked) => push({ name: 'chimieStock', chimieStockId: id, startUnlocked })}
+        />
+      )}
+
+      {view.name === 'chimieStock' && (
+        <ChimieStockDetailPage chimieStockId={view.chimieStockId} startUnlocked={view.startUnlocked} onBack={pop} />
       )}
     </>
   )

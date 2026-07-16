@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { deleteTirage, getTirage, setPhotoImage, updateTirage } from '../db/db'
+import { deleteTirage, getChimieStocks, getTirage, setPhotoImage, updateTirage } from '../db/db'
 import type {
   BandeTest,
   Chimie,
+  ChimieStock,
   DodgeBurnZone,
   Exposition,
   MethodeExposition,
@@ -33,6 +34,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved'
 
 export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: TirageDetailPageProps) {
   const [tirage, setTirage] = useState<Tirage | null>(null)
+  const [chimieStocks, setChimieStocks] = useState<ChimieStock[]>([])
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
@@ -44,8 +46,9 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
     setLoading(true)
     skipNextSave.current = true
     setLocked(!startUnlocked)
-    getTirage(tirageId).then((t) => {
+    Promise.all([getTirage(tirageId), getChimieStocks()]).then(([t, stocks]) => {
       setTirage(t ?? null)
+      setChimieStocks(stocks)
       setLoading(false)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +112,7 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
     if (!tirage) return
     setExporting(true)
     try {
-      await exportTirageToPdf(tirage)
+      await exportTirageToPdf(tirage, chimieStocks)
     } finally {
       setExporting(false)
     }
@@ -182,6 +185,7 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
           value={tirage.chimie}
           onChange={(v: Chimie) => updateField('chimie', v)}
           showRincage={tirage.exposition.papierBaryte}
+          chimieStocks={chimieStocks}
         />
 
         <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />

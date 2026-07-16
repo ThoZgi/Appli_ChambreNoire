@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import type { Tirage } from '../types'
+import type { ChimieStock, Tirage } from '../types'
 import { zoneLabel } from './dodgeBurnRender'
 import { renderAnnotatedPrintImage } from './annotatedPrintImage'
 import { slugify } from './slug'
@@ -8,7 +8,8 @@ const MARGIN = 15
 const LINE_HEIGHT = 6
 const SECTION_GAP = 4
 
-export async function exportTirageToPdf(tirage: Tirage): Promise<void> {
+export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStock[] = []): Promise<void> {
+  const stockName = (id: string | null) => chimieStocks.find((s) => s.id === id)?.nom ?? ''
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -67,6 +68,7 @@ export async function exportTirageToPdf(tirage: Tirage): Promise<void> {
     ['Révélateur', tirage.chimie.revelateur],
     ["Bain d'arrêt", tirage.chimie.bainArret],
     ['Fixateur', tirage.chimie.fixateur],
+    ['Fixateur — bain 2', tirage.chimie.fixateurBain2],
     ['Rinçage', tirage.chimie.rincage],
   ]
   const chimieRows: [string, string][] = []
@@ -75,6 +77,7 @@ export async function exportTirageToPdf(tirage: Tirage): Promise<void> {
     if (step.dilution) chimieRows.push([`${label} — dilution`, step.dilution])
     if (step.temps) chimieRows.push([`${label} — temps`, step.temps])
     chimieRows.push([`${label} — température`, `${step.temperature}°C`])
+    if (step.chimieStockId) chimieRows.push([`${label} — bidon`, stockName(step.chimieStockId)])
   }
   if (tirage.chimie.notes) chimieRows.push(['Notes chimie', tirage.chimie.notes])
   addSection('Chimie', chimieRows)

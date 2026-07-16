@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { deleteDeveloppement, getDeveloppement, updateDeveloppement } from '../db/db'
-import type { DeveloppementChimie, Developpement, NegatifRef } from '../types'
+import { deleteDeveloppement, getChimieStocks, getDeveloppement, updateDeveloppement } from '../db/db'
+import type { ChimieStock, DeveloppementChimie, Developpement, NegatifRef } from '../types'
 import NegatifList from '../components/NegatifList'
 import DevChemistryForm from '../components/DevChemistryForm'
 import SelectOrCustom from '../components/SelectOrCustom'
@@ -23,6 +23,7 @@ export default function DeveloppementDetailPage({
   onBack,
 }: DeveloppementDetailPageProps) {
   const [developpement, setDeveloppement] = useState<Developpement | null>(null)
+  const [chimieStocks, setChimieStocks] = useState<ChimieStock[]>([])
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
@@ -33,8 +34,9 @@ export default function DeveloppementDetailPage({
     setLoading(true)
     skipNextSave.current = true
     setLocked(!startUnlocked)
-    getDeveloppement(developpementId).then((d) => {
+    Promise.all([getDeveloppement(developpementId), getChimieStocks()]).then(([d, stocks]) => {
       setDeveloppement(d ?? null)
+      setChimieStocks(stocks)
       setLoading(false)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +89,7 @@ export default function DeveloppementDetailPage({
               Verrouiller
             </button>
           )}
-          <button className="btn-link" onClick={() => exportDeveloppementCsv(developpement)}>
+          <button className="btn-link" onClick={() => exportDeveloppementCsv(developpement, chimieStocks)}>
             Exporter (CSV)
           </button>
           <button className="btn-link" onClick={handleDelete}>
@@ -189,6 +191,7 @@ export default function DeveloppementDetailPage({
         <DevChemistryForm
           value={developpement.chimie}
           onChange={(v: DeveloppementChimie) => updateField('chimie', v)}
+          chimieStocks={chimieStocks}
         />
 
         <section className="card">
