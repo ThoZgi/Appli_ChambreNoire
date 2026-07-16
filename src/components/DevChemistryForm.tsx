@@ -1,5 +1,6 @@
 import type { ChemistryStep, ChimieStock, ChimieStockType, DeveloppementChimie } from '../types'
 import { FILM_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
+import { chimieStockOptionLabel } from '../utils/chimieCapacity'
 import SelectOrCustom from './SelectOrCustom'
 import AgitationPicker from './AgitationPicker'
 import NumberStepper from './NumberStepper'
@@ -17,7 +18,7 @@ const STEP_LABELS: {
   stockType?: ChimieStockType
 }[] = [
   { key: 'premouillage', label: 'Prémouillage', options: RINSE_PRESETS },
-  { key: 'revelateur', label: 'Révélateur', options: FILM_DEVELOPER_PRESETS, stockType: 'developpeur' },
+  { key: 'revelateur', label: 'Révélateur', options: FILM_DEVELOPER_PRESETS, stockType: 'developpeur_film' },
   { key: 'bainArret', label: "Bain d'arrêt", options: STOP_BATH_PRESETS },
   { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS, stockType: 'fixateur' },
   { key: 'rincage', label: 'Rinçage', options: RINSE_PRESETS },
@@ -99,8 +100,7 @@ function StepFields({
             <option value="">Aucun</option>
             {availableStocks.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.nom}
-                {s.statut === 'epuise' ? ' (épuisé)' : ''}
+                {chimieStockOptionLabel(s)}
               </option>
             ))}
           </select>

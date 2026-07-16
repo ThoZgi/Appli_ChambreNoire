@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  countChimieStockUsages,
-  deleteChimieStock,
-  getChimieStock,
-  updateChimieStock,
-} from '../db/db'
-import type { ChimieStock, ChimieStockStatut } from '../types'
+import { countChimieStockUsages, deleteChimieStock, getChimieStock, updateChimieStock } from '../db/db'
+import type { ChimieStock, ChimieStockStatut, ChimieStockType } from '../types'
 import { FILM_DEVELOPER_PRESETS, FIXER_PRESETS, PAPER_DEVELOPER_PRESETS } from '../utils/presets'
+import type { ChimieStockUsage } from '../utils/chimieCapacity'
+import { STOCK_HEALTH_LABEL, computeStockHealth, getCapacity } from '../utils/chimieCapacity'
 import SelectOrCustom from '../components/SelectOrCustom'
 
-const DEVELOPPEUR_PRESETS = [...FILM_DEVELOPER_PRESETS, ...PAPER_DEVELOPER_PRESETS]
+const TYPE_LABELS: Record<ChimieStockType, string> = {
+  developpeur_film: 'Révélateur film',
+  developpeur_papier: 'Révélateur papier',
+  fixateur: 'Fixateur',
+}
+
+const TYPE_PRESETS: Record<ChimieStockType, string[]> = {
+  developpeur_film: FILM_DEVELOPER_PRESETS,
+  developpeur_papier: PAPER_DEVELOPER_PRESETS,
+  fixateur: FIXER_PRESETS,
+}
 
 interface ChimieStockDetailPageProps {
   chimieStockId: string
@@ -21,7 +28,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved'
 
 export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, onBack }: ChimieStockDetailPageProps) {
   const [stock, setStock] = useState<ChimieStock | null>(null)
-  const [usage, setUsage] = useState<{ developpements: number; tirages: number } | null>(null)
+  const [usage, setUsage] = useState<ChimieStockUsage | null>(null)
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
@@ -71,6 +78,9 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
   if (loading) return <p className="muted">Chargement…</p>
   if (!stock) return <p className="muted">Bidon introuvable.</p>
 
+  const health = usage ? computeStockHealth(stock, usage) : 'ok'
+  const formatEntries = usage ? Object.entries(usage.formatBreakdown) : []
+
   return (
     <div className="page">
       <div className="page-header">
@@ -97,6 +107,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
       </div>
 
       <h1>
+        <span className={`health-dot health-dot-${health}`} />
         <input
           className="tirage-title-input"
           value={stock.nom}
@@ -109,7 +120,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
         <section className="card">
           <div className="stops-row">
             <span className="field-label-inline">Type :</span>
-            <span className="chip chip-active">{stock.type === 'developpeur' ? 'Développeur' : 'Fixateur'}</span>
+            <span className="chip chip-active">{TYPE_LABELS[stock.type]}</span>
           </div>
 
           <div className="stops-row">
@@ -135,7 +146,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
               Produit
               <SelectOrCustom
                 value={stock.nom}
-                options={stock.type === 'developpeur' ? DEVELOPPEUR_PRESETS : FIXER_PRESETS}
+                options={TYPE_PRESETS[stock.type]}
                 onChange={(v) => updateField('nom', v)}
                 placeholder="ex : produit personnalisé"
               />
@@ -161,11 +172,28 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
           </div>
 
           {usage && (
-            <p className="muted">
-              {stock.type === 'developpeur'
-                ? `${usage.developpements} rouleau(x)/plan(s) film développé(s) avec ce bidon.`
-                : `${usage.developpements} développement(s) et ${usage.tirages} tirage(s) fixé(s) avec ce bidon.`}
-            </p>
+            <>
+              <p className="muted">
+                <span className={`health-dot health-dot-${health}`} />
+                {STOCK_HEALTH_LABEL[health]} — capacité indicative : {getCapacity(stock)}
+                {stock.type === 'developpeur_papier' ? ' feuille(s) 8x10-équiv.' : ' rouleau(x) 35mm/120-équiv.'}
+              </p>
+              {stock.type === 'developpeur_film' && (
+                <p className="muted">
+                  {formatEntries.length === 0
+                    ? 'Aucun négatif développé avec ce bidon.'
+                    : formatEntries.map(([format, count]) => `${count}× ${format}`).join(' · ')}
+                </p>
+              )}
+              {stock.type === 'developpeur_papier' && (
+                <p className="muted">{usage.developpements} développement(s) avec ce bidon.</p>
+              )}
+              {stock.type === 'fixateur' && (
+                <p className="muted">
+                  {usage.developpements} développement(s) et {usage.tirages} tirage(s) fixé(s) avec ce bidon.
+                </p>
+              )}
+            </>
           )}
         </section>
 

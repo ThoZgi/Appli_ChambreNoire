@@ -11,6 +11,7 @@ import {
   emptyZoneMasterReading,
 } from '../types'
 import type { ChemistryStep } from '../types'
+import type { ChimieStockUsage } from '../utils/chimieCapacity'
 
 interface ChambreNoireDB extends DBSchema {
   photos: {
@@ -121,8 +122,10 @@ function normalizePhoto(photo: Photo): Photo {
 }
 
 function normalizeChimieStock(stock: ChimieStock): ChimieStock {
+  const rawType = stock.type as string
   return {
     ...stock,
+    type: rawType === 'developpeur' ? 'developpeur_film' : (stock.type ?? 'developpeur_film'),
     concentration: stock.concentration ?? '',
     dateMiseEnService: stock.dateMiseEnService ?? '',
     statut: stock.statut ?? 'actif',
@@ -289,13 +292,19 @@ export async function deleteChimieStock(id: string): Promise<void> {
   await db.delete('chimieStocks', id)
 }
 
-export async function countChimieStockUsages(stockId: string): Promise<{ developpements: number; tirages: number }> {
+export async function countChimieStockUsages(stockId: string): Promise<ChimieStockUsage> {
   const db = await getDB()
   const [developpements, tirages] = await Promise.all([db.getAll('developpements'), db.getAll('tirages')])
-  const developpementCount = developpements.filter((d) => {
+  let developpementCount = 0
+  const formatBreakdown: Record<string, number> = {}
+  for (const d of developpements) {
     const chimie = d.chimie as unknown as Record<string, { chimieStockId?: unknown } | undefined>
-    return chimie.revelateur?.chimieStockId === stockId || chimie.fixateur?.chimieStockId === stockId
-  }).length
+    const uses = chimie.revelateur?.chimieStockId === stockId || chimie.fixateur?.chimieStockId === stockId
+    if (uses) {
+      developpementCount++
+      formatBreakdown[d.format] = (formatBreakdown[d.format] ?? 0) + 1
+    }
+  }
   const tirageCount = tirages.filter((t) => {
     const chimie = t.chimie as unknown as Record<string, { chimieStockId?: unknown } | undefined>
     return (
@@ -304,5 +313,5 @@ export async function countChimieStockUsages(stockId: string): Promise<{ develop
       chimie.fixateurBain2?.chimieStockId === stockId
     )
   }).length
-  return { developpements: developpementCount, tirages: tirageCount }
+  return { developpements: developpementCount, tirages: tirageCount, formatBreakdown }
 }

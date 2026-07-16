@@ -3,23 +3,38 @@ import { addChimieStock, countChimieStockUsages, deleteChimieStock, getChimieSto
 import type { ChimieStock, ChimieStockType } from '../types'
 import { emptyChimieStock } from '../types'
 import { FILM_DEVELOPER_PRESETS, FIXER_PRESETS, PAPER_DEVELOPER_PRESETS } from '../utils/presets'
+import type { ChimieStockUsage } from '../utils/chimieCapacity'
+import { computeStockHealth } from '../utils/chimieCapacity'
 import SelectOrCustom from '../components/SelectOrCustom'
 
 interface ChimieStockListPageProps {
   onSelectChimieStock: (id: string, startUnlocked?: boolean) => void
 }
 
-type SortBy = 'date' | 'type' | 'statut'
+const TYPE_GROUPS: { type: ChimieStockType; label: string; presets: string[] }[] = [
+  { type: 'developpeur_film', label: 'Révélateur film', presets: FILM_DEVELOPER_PRESETS },
+  { type: 'developpeur_papier', label: 'Révélateur papier', presets: PAPER_DEVELOPER_PRESETS },
+  { type: 'fixateur', label: 'Fixateur', presets: FIXER_PRESETS },
+]
 
-const DEVELOPPEUR_PRESETS = [...FILM_DEVELOPER_PRESETS, ...PAPER_DEVELOPER_PRESETS]
+function usageSummary(stock: ChimieStock, usage: ChimieStockUsage): string {
+  if (stock.type === 'developpeur_film') {
+    const entries = Object.entries(usage.formatBreakdown)
+    if (entries.length === 0) return '0 négatif développé'
+    return entries.map(([format, count]) => `${count}× ${format}`).join(' · ')
+  }
+  if (stock.type === 'developpeur_papier') {
+    return `${usage.developpements} développement(s)`
+  }
+  return `${usage.developpements + usage.tirages} utilisation(s)`
+}
 
 export default function ChimieStockListPage({ onSelectChimieStock }: ChimieStockListPageProps) {
   const [stocks, setStocks] = useState<ChimieStock[]>([])
-  const [usages, setUsages] = useState<Record<string, { developpements: number; tirages: number }>>({})
-  const [sortBy, setSortBy] = useState<SortBy>('date')
+  const [usages, setUsages] = useState<Record<string, ChimieStockUsage>>({})
   const [showForm, setShowForm] = useState(false)
   const [nom, setNom] = useState('')
-  const [type, setType] = useState<ChimieStockType>('developpeur')
+  const [type, setType] = useState<ChimieStockType>('developpeur_film')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,7 +54,7 @@ export default function ChimieStockListPage({ onSelectChimieStock }: ChimieStock
     e.preventDefault()
     const stock = await addChimieStock({ ...emptyChimieStock(), nom, type })
     setNom('')
-    setType('developpeur')
+    setType('developpeur_film')
     setShowForm(false)
     await refresh()
     onSelectChimieStock(stock.id, true)
@@ -52,11 +67,32 @@ export default function ChimieStockListPage({ onSelectChimieStock }: ChimieStock
     await refresh()
   }
 
-  const sorted = [...stocks].sort((a, b) => {
-    if (sortBy === 'type') return a.type.localeCompare(b.type)
-    if (sortBy === 'statut') return a.statut.localeCompare(b.statut)
-    return b.createdAt - a.createdAt
-  })
+  const currentGroupPresets = TYPE_GROUPS.find((g) => g.type === type)?.presets ?? []
+
+  function renderCard(stock: ChimieStock) {
+    const usage = usages[stock.id]
+    const health = usage ? computeStockHealth(stock, usage) : 'ok'
+    return (
+      <div key={stock.id} className="tirage-card">
+        <button className="tirage-card-open" onClick={() => onSelectChimieStock(stock.id)}>
+          <div className="tirage-card-info">
+            <strong>
+              <span className={`health-dot health-dot-${health}`} />
+              {stock.nom || 'Bidon sans nom'}
+            </strong>
+            <span className="muted">
+              {stock.statut === 'epuise' ? 'Épuisé' : 'Actif'} ·{' '}
+              {stock.dateMiseEnService || new Date(stock.createdAt).toLocaleDateString('fr-FR')}
+            </span>
+            {usage && <span className="muted">{usageSummary(stock, usage)}</span>}
+          </div>
+        </button>
+        <button type="button" className="card-delete-btn" onClick={(e) => handleDelete(e, stock)} title="Supprimer">
+          🗑
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="page">
@@ -71,26 +107,22 @@ export default function ChimieStockListPage({ onSelectChimieStock }: ChimieStock
         <form className="card form" onSubmit={handleSubmit}>
           <div className="stops-row">
             <span className="field-label-inline">Type :</span>
-            <button
-              type="button"
-              className={type === 'developpeur' ? 'chip chip-active' : 'chip'}
-              onClick={() => setType('developpeur')}
-            >
-              Développeur
-            </button>
-            <button
-              type="button"
-              className={type === 'fixateur' ? 'chip chip-active' : 'chip'}
-              onClick={() => setType('fixateur')}
-            >
-              Fixateur
-            </button>
+            {TYPE_GROUPS.map((g) => (
+              <button
+                key={g.type}
+                type="button"
+                className={type === g.type ? 'chip chip-active' : 'chip'}
+                onClick={() => setType(g.type)}
+              >
+                {g.label}
+              </button>
+            ))}
           </div>
           <label className="field-label">
             Produit
             <SelectOrCustom
               value={nom}
-              options={type === 'developpeur' ? DEVELOPPEUR_PRESETS : FIXER_PRESETS}
+              options={currentGroupPresets}
               onChange={setNom}
               placeholder="ex : produit personnalisé"
             />
@@ -107,67 +139,27 @@ export default function ChimieStockListPage({ onSelectChimieStock }: ChimieStock
         <p className="muted">Aucun bidon pour l'instant. Ajoutez-en un pour commencer.</p>
       )}
 
-      {!loading && stocks.length > 0 && (
-        <div className="stops-row">
-          <span className="field-label-inline">Trier par :</span>
-          <button
-            type="button"
-            className={sortBy === 'date' ? 'chip chip-active' : 'chip'}
-            onClick={() => setSortBy('date')}
-          >
-            Date
-          </button>
-          <button
-            type="button"
-            className={sortBy === 'type' ? 'chip chip-active' : 'chip'}
-            onClick={() => setSortBy('type')}
-          >
-            Type
-          </button>
-          <button
-            type="button"
-            className={sortBy === 'statut' ? 'chip chip-active' : 'chip'}
-            onClick={() => setSortBy('statut')}
-          >
-            Statut
-          </button>
-        </div>
-      )}
-
-      <div className="tirage-list">
-        {sorted.map((stock) => {
-          const usage = usages[stock.id]
+      {!loading &&
+        stocks.length > 0 &&
+        TYPE_GROUPS.map((g) => {
+          const groupStocks = stocks.filter((s) => s.type === g.type)
+          if (groupStocks.length === 0) return null
+          const active = groupStocks.filter((s) => s.statut === 'actif')
+          const anciens = groupStocks.filter((s) => s.statut === 'epuise')
           return (
-            <div key={stock.id} className="tirage-card">
-              <button className="tirage-card-open" onClick={() => onSelectChimieStock(stock.id)}>
-                <div className="tirage-card-info">
-                  <strong>{stock.nom || 'Bidon sans nom'}</strong>
-                  <span className="muted">
-                    {stock.type === 'developpeur' ? 'Développeur' : 'Fixateur'} ·{' '}
-                    {stock.statut === 'epuise' ? 'Épuisé' : 'Actif'} ·{' '}
-                    {new Date(stock.createdAt).toLocaleDateString('fr-FR')}
-                  </span>
-                  {usage && (
-                    <span className="muted">
-                      {stock.type === 'developpeur'
-                        ? `${usage.developpements} développement(s)`
-                        : `${usage.developpements + usage.tirages} utilisation(s)`}
-                    </span>
-                  )}
-                </div>
-              </button>
-              <button
-                type="button"
-                className="card-delete-btn"
-                onClick={(e) => handleDelete(e, stock)}
-                title="Supprimer"
-              >
-                🗑
-              </button>
+            <div key={g.type} className="chimie-stock-group">
+              <h2>{g.label}</h2>
+              {active.length === 0 && <p className="muted">Aucun bidon actif.</p>}
+              <div className="tirage-list">{active.map(renderCard)}</div>
+              {anciens.length > 0 && (
+                <details className="negatif-details">
+                  <summary>Anciens bidons ({anciens.length}) — afficher / masquer</summary>
+                  <div className="tirage-list">{anciens.map(renderCard)}</div>
+                </details>
+              )}
             </div>
           )
         })}
-      </div>
     </div>
   )
 }

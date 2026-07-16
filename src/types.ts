@@ -103,7 +103,7 @@ export interface NegatifRef {
   lieu: string
 }
 
-export type ChimieStockType = 'developpeur' | 'fixateur'
+export type ChimieStockType = 'developpeur_film' | 'developpeur_papier' | 'fixateur'
 export type ChimieStockStatut = 'actif' | 'epuise'
 
 export interface ChimieStock {
@@ -175,7 +175,7 @@ export function emptyChemistryStep(): ChemistryStep {
 }
 
 export function emptyChimieStock(): Omit<ChimieStock, 'id' | 'createdAt'> {
-  return { nom: '', type: 'developpeur', concentration: '', dateMiseEnService: '', statut: 'actif', notes: '' }
+  return { nom: '', type: 'developpeur_film', concentration: '', dateMiseEnService: '', statut: 'actif', notes: '' }
 }
 
 export function emptyExposition(): Exposition {
