@@ -100,11 +100,17 @@ h2 {
 }
 
 h3 {
-  font-size: 13px;
+  display: inline-block;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(217, 84, 47, 0.1);
+  border-left: 3px solid var(--accent);
+  padding: 4px 10px;
   margin: 16px 0 8px;
+  border-radius: 4px;
 }
 
 p {
