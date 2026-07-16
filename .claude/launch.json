@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "chambre-noire-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "C:\\Users\\Thomas\\AppData\\Local\\Temp\\claude\\C--Users-Thomas-Documents-Appli-ChambreNoire\\c846af03-963b-4e7f-93a9-31165695e349\\scratchpad\\dev-wrapper.cmd",
+      "runtimeArgs": [],
       "port": 5173
     }
   ]
