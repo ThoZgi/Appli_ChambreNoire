@@ -3,7 +3,13 @@ import { countChimieStockUsages, deleteChimieStock, getChimieStock, updateChimie
 import type { ChimieStock, ChimieStockStatut, ChimieStockType } from '../types'
 import { FILM_DEVELOPER_PRESETS, FIXER_PRESETS, PAPER_DEVELOPER_PRESETS } from '../utils/presets'
 import type { ChimieStockUsage } from '../utils/chimieCapacity'
-import { STOCK_HEALTH_LABEL, computeStockHealth, getCapacity } from '../utils/chimieCapacity'
+import {
+  STOCK_HEALTH_LABEL,
+  computeStockHealth,
+  formatFilmUsageSummary,
+  getCapacity,
+  summarizeFilmUsage,
+} from '../utils/chimieCapacity'
 import SelectOrCustom from '../components/SelectOrCustom'
 
 const TYPE_LABELS: Record<ChimieStockType, string> = {
@@ -79,7 +85,6 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
   if (!stock) return <p className="muted">Bidon introuvable.</p>
 
   const health = usage ? computeStockHealth(stock, usage) : 'ok'
-  const formatEntries = usage ? Object.entries(usage.formatBreakdown) : []
 
   return (
     <div className="page">
@@ -179,11 +184,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
                 {stock.type === 'developpeur_papier' ? ' feuille(s) 8x10-équiv.' : ' rouleau(x) 35mm/120-équiv.'}
               </p>
               {stock.type === 'developpeur_film' && (
-                <p className="muted">
-                  {formatEntries.length === 0
-                    ? 'Aucun négatif développé avec ce bidon.'
-                    : formatEntries.map(([format, count]) => `${count}× ${format}`).join(' · ')}
-                </p>
+                <p className="muted">{formatFilmUsageSummary(summarizeFilmUsage(usage.formatBreakdown))}</p>
               )}
               {stock.type === 'developpeur_papier' && (
                 <p className="muted">{usage.developpements} développement(s) avec ce bidon.</p>

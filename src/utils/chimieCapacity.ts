@@ -1,4 +1,5 @@
 import type { ChimieStock } from '../types'
+import { isSheetFormat } from './formats'
 
 /**
  * Capacités approximatives issues des fiches techniques fabricant / retours d'expérience
@@ -69,6 +70,24 @@ export function estimateRollEquivalent(formatBreakdown: Record<string, number>):
   )
 }
 
+export interface FilmUsageSummary {
+  rolls: number // rouleaux 35mm/120, comptés tels quels
+  sheetsRollEquivalent: number // plans film, convertis en équivalent-rouleau (surface)
+}
+
+export function summarizeFilmUsage(formatBreakdown: Record<string, number>): FilmUsageSummary {
+  let rolls = 0
+  let sheetsRollEquivalent = 0
+  for (const [format, count] of Object.entries(formatBreakdown)) {
+    if (isSheetFormat(format)) {
+      sheetsRollEquivalent += count * (FORMAT_ROLL_EQUIVALENTS[format] ?? DEFAULT_FORMAT_ROLL_EQUIVALENT)
+    } else {
+      rolls += count
+    }
+  }
+  return { rolls, sheetsRollEquivalent }
+}
+
 export function getCapacity(stock: ChimieStock): number {
   if (stock.type === 'developpeur_film') return FILM_DEVELOPER_CAPACITY[stock.nom] ?? DEFAULT_FILM_DEVELOPER_CAPACITY
   if (stock.type === 'developpeur_papier') return PAPER_DEVELOPER_CAPACITY[stock.nom] ?? DEFAULT_PAPER_DEVELOPER_CAPACITY
@@ -99,6 +118,15 @@ export const STOCK_HEALTH_LABEL: Record<StockHealth, string> = {
   ok: 'Capacité disponible',
   warning: "Approche de l'épuisement",
   over: 'Capacité dépassée — à remplacer',
+}
+
+export function formatFilmUsageSummary(summary: FilmUsageSummary): string {
+  const parts: string[] = []
+  if (summary.rolls > 0) parts.push(`${summary.rolls} rouleau(x) (35/120)`)
+  if (summary.sheetsRollEquivalent > 0) {
+    parts.push(`${summary.sheetsRollEquivalent.toFixed(1)} équiv. plan film`)
+  }
+  return parts.length > 0 ? parts.join(' · ') : 'Aucun négatif développé'
 }
 
 export function chimieStockOptionLabel(stock: ChimieStock): string {

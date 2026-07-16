@@ -4,7 +4,7 @@ import type { ChimieStock, ChimieStockType } from '../types'
 import { emptyChimieStock } from '../types'
 import { FILM_DEVELOPER_PRESETS, FIXER_PRESETS, PAPER_DEVELOPER_PRESETS } from '../utils/presets'
 import type { ChimieStockUsage } from '../utils/chimieCapacity'
-import { computeStockHealth } from '../utils/chimieCapacity'
+import { computeStockHealth, formatFilmUsageSummary, summarizeFilmUsage } from '../utils/chimieCapacity'
 import SelectOrCustom from '../components/SelectOrCustom'
 
 interface ChimieStockListPageProps {
@@ -19,9 +19,7 @@ const TYPE_GROUPS: { type: ChimieStockType; label: string; presets: string[] }[]
 
 function usageSummary(stock: ChimieStock, usage: ChimieStockUsage): string {
   if (stock.type === 'developpeur_film') {
-    const entries = Object.entries(usage.formatBreakdown)
-    if (entries.length === 0) return '0 négatif développé'
-    return entries.map(([format, count]) => `${count}× ${format}`).join(' · ')
+    return formatFilmUsageSummary(summarizeFilmUsage(usage.formatBreakdown))
   }
   if (stock.type === 'developpeur_papier') {
     return `${usage.developpements} développement(s)`
