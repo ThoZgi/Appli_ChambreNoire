@@ -1,5 +1,6 @@
 import type { Exposition } from '../types'
 import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS } from '../utils/paperPresets'
+import { LENS_PRESETS } from '../utils/equipmentPresets'
 import SelectOrCustom from './SelectOrCustom'
 
 interface MaterielPapierFormProps {
@@ -28,11 +29,11 @@ export default function MaterielPapierForm({ value, onChange }: MaterielPapierFo
         </label>
         <label className="field-label">
           Optique
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.optique}
-            onChange={(e) => set('optique', e.target.value)}
-            placeholder="ex : Rodagon 50mm f/2.8"
+            options={LENS_PRESETS}
+            onChange={(v) => set('optique', v)}
+            placeholder="ex : optique personnalisée"
           />
         </label>
         <label className="field-label">
