@@ -4,6 +4,7 @@ import type { Developpement } from '../types'
 import { emptyDeveloppement } from '../types'
 import { FORMAT_PRESETS } from '../utils/formats'
 import { FILM_STOCK_PRESETS } from '../utils/presets'
+import { slugify } from '../utils/slug'
 import SelectOrCustom from '../components/SelectOrCustom'
 
 interface DeveloppementListPageProps {
@@ -19,11 +20,11 @@ function pad(n: number): string {
 function generateNom(format: string, filmStock: string, existing: Developpement[]): string {
   const now = new Date()
   const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
-  const base = [date, format, filmStock].filter(Boolean).join(' ')
+  const base = [date, format, filmStock].filter(Boolean).map(slugify).join('_')
   let candidate = base
   let n = 2
   while (existing.some((d) => d.nom === candidate)) {
-    candidate = `${base} (${n})`
+    candidate = `${base}_${n}`
     n++
   }
   return candidate

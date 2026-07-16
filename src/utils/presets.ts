@@ -20,6 +20,7 @@ export const FILM_DEVELOPER_PRESETS = [
   'Kodak HC-110',
   'Rodinal',
   'Kodak Xtol',
+  'Bergger PMK Pyro',
 ]
 
 export const PAPER_DEVELOPER_PRESETS = [
@@ -29,9 +30,10 @@ export const PAPER_DEVELOPER_PRESETS = [
   'Fotospeed PD',
   'Moersch Eco 2',
   'Tetenal Eukobrom',
+  'Bergger Neutol WA',
 ]
 
-export const STOP_BATH_PRESETS = ['Ilford Ilfostop', 'Kodak Indicator Stop Bath', 'Eau (arrêt simple)']
+export const STOP_BATH_PRESETS = ['Vinaigre', 'Ilford Ilfostop', 'Kodak Indicator Stop Bath', 'Eau (arrêt simple)']
 
 export const FIXER_PRESETS = ['Ilford Rapid Fixer', 'Ilford Hypam', 'Kodak Fixer']
 

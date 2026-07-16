@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { NegatifRef } from '../types'
 import { COMPENSATION_PRESETS, FORMAT_EXPOSURE_PRESETS, isSheetFormat } from '../utils/formats'
+import NumberStepper from './NumberStepper'
 
 interface NegatifListProps {
   value: NegatifRef[]
@@ -46,13 +47,7 @@ export default function NegatifList({ value, onChange, format }: NegatifListProp
       <div className="field-row">
         <label className="field-label">
           Nombre de vues
-          <input
-            type="number"
-            className="field-input"
-            min={1}
-            value={genCount}
-            onChange={(e) => setGenCount(Number(e.target.value) || 0)}
-          />
+          <NumberStepper min={1} value={genCount} onChange={setGenCount} />
         </label>
         <button type="button" className="btn-primary" onClick={generate}>
           Générer les vues

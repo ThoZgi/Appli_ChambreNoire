@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addPhoto, getDeveloppements, getPhotos, getTirages } from '../db/db'
 import type { Developpement, Photo, TirageStatut } from '../types'
+import { slugify } from '../utils/slug'
 import BlobImage from '../components/BlobImage'
 
 interface PhotoListPageProps {
@@ -41,6 +42,11 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
 
   const selectedDeveloppement = developpements.find((d) => d.id === developpementId)
 
+  const existingVersions = photos.filter(
+    (p) => p.developpementId === developpementId && p.negatifReference === negatifReference && negatifReference,
+  )
+  const nextVersion = existingVersions.length > 0 ? Math.max(...existingVersions.map((p) => p.version)) + 1 : 1
+
   function handleDeveloppementChange(id: string) {
     setDeveloppementId(id)
     setNegatifReference('')
@@ -50,7 +56,16 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
   function handleNegatifChange(reference: string) {
     setNegatifReference(reference)
     if (!nameTouched && selectedDeveloppement) {
-      setName(reference ? `${selectedDeveloppement.nom} — négatif ${reference}` : '')
+      if (!reference) {
+        setName('')
+        return
+      }
+      const versions = photos.filter(
+        (p) => p.developpementId === selectedDeveloppement.id && p.negatifReference === reference,
+      )
+      const version = versions.length > 0 ? Math.max(...versions.map((p) => p.version)) + 1 : 1
+      const base = `${selectedDeveloppement.nom}_${slugify(reference)}`
+      setName(version > 1 ? `${base}_v${version}` : base)
     }
   }
 
@@ -68,6 +83,7 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
       imageBlob: null,
       developpementId: developpementId || null,
       negatifReference: negatifReference || null,
+      version: nextVersion,
     })
     setName('')
     setNameTouched(false)
@@ -123,6 +139,14 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
               </label>
             )}
           </div>
+          {existingVersions.length > 0 && (
+            <p className="muted">
+              ⚠️ Ce négatif a déjà {existingVersions.length} photo{existingVersions.length > 1 ? 's' : ''} (
+              {existingVersions.map((p) => `v${p.version}`).join(', ')}). Une nouvelle version <strong>v{nextVersion}</strong> sera
+              créée si vous continuez — utile pour distinguer un nouveau scan ou une nouvelle interprétation, mais
+              pensez à ouvrir la version existante si vous vouliez juste ajouter un tirage.
+            </p>
+          )}
           <label className="field-label">
             Nom de la photo
             <input
@@ -169,7 +193,10 @@ export default function PhotoListPage({ onSelectPhoto }: PhotoListPageProps) {
               ) : (
                 <div className="photo-card-img photo-placeholder">Pas encore de tirage</div>
               )}
-              <span className="photo-card-name">{photo.name}</span>
+              <span className="photo-card-name">
+                {photo.name}
+                {photo.version > 1 && <span className="muted"> (v{photo.version})</span>}
+              </span>
             </button>
           )
         })}

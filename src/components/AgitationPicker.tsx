@@ -1,4 +1,5 @@
 import type { Agitation } from '../types'
+import NumberStepper from './NumberStepper'
 
 interface AgitationPickerProps {
   value: Agitation
@@ -49,13 +50,10 @@ export default function AgitationPicker({ value, onChange }: AgitationPickerProp
             {o.label}
           </button>
         ))}
-        <input
-          type="number"
-          className="field-input stops-custom"
+        <NumberStepper
           min={0}
-          value={value.quantite}
-          onChange={(e) => onChange({ ...value, quantite: e.target.value })}
-          placeholder={value.typeAction === 'inversions' ? 'ex : 4' : 'ex : 5'}
+          value={parseFloat(value.quantite) || 0}
+          onChange={(v) => onChange({ ...value, quantite: v.toString() })}
         />
       </div>
       <div className="stops-row">
@@ -70,13 +68,10 @@ export default function AgitationPicker({ value, onChange }: AgitationPickerProp
             {o.label}
           </button>
         ))}
-        <input
-          type="number"
-          className="field-input stops-custom"
+        <NumberStepper
           min={0}
-          value={value.frequence}
-          onChange={(e) => onChange({ ...value, frequence: e.target.value })}
-          placeholder="manuel (s)"
+          value={parseFloat(value.frequence) || 0}
+          onChange={(v) => onChange({ ...value, frequence: v.toString() })}
         />
       </div>
     </div>

@@ -35,7 +35,7 @@ export default function App() {
   return (
     <>
       <nav className="main-nav">
-        <span className="main-nav-title">Chambre Noire</span>
+        <span className="main-nav-title">Labo photo / Carnet de Bord</span>
         <button
           type="button"
           className={section(view) === 'developpements' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}

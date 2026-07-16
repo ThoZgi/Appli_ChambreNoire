@@ -6,6 +6,7 @@ export interface Photo {
   notes: string
   developpementId: string | null
   negatifReference: string | null
+  version: number
 }
 
 export interface ChemistryStep {
@@ -118,6 +119,16 @@ export interface Virage {
 
 export type TirageStatut = 'en_cours' | 'termine'
 
+export type MethodeExposition = 'bandeTest' | 'zoneMaster'
+
+export interface ZoneMasterReading {
+  lectureHautesLumieres: string
+  lectureOmbres: string
+  tempsObtenu: string
+  gradeObtenu: string
+  notes: string
+}
+
 export interface Tirage {
   id: string
   photoId: string
@@ -127,7 +138,9 @@ export interface Tirage {
   chimie: Chimie
   printImageBlob: Blob | null
   dodgeBurnZones: DodgeBurnZone[]
+  methodeExposition: MethodeExposition
   bandeTest: BandeTest
+  zoneMaster: ZoneMasterReading
   splitGrading: SplitGrading
   virage: Virage
   statut: TirageStatut
@@ -135,7 +148,7 @@ export interface Tirage {
 }
 
 export function emptyChemistryStep(): ChemistryStep {
-  return { nom: '', dilution: '', temps: '', temperature: '' }
+  return { nom: '', dilution: '', temps: '', temperature: '20°C' }
 }
 
 export function emptyExposition(): Exposition {
@@ -174,6 +187,10 @@ export function emptyBandeTest(): BandeTest {
     incrementStops: 1 / 3,
     steps: Array.from({ length: 7 }, () => ({ id: crypto.randomUUID(), note: '', selected: false })),
   }
+}
+
+export function emptyZoneMasterReading(): ZoneMasterReading {
+  return { lectureHautesLumieres: '', lectureOmbres: '', tempsObtenu: '', gradeObtenu: '', notes: '' }
 }
 
 export function emptyGradeTestStrip(grade: string): GradeTestStrip {

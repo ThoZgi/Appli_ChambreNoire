@@ -1,5 +1,5 @@
 import type { Exposition } from '../types'
-import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS } from '../utils/paperPresets'
+import { APERTURE_PRESETS } from '../utils/formats'
 import SelectOrCustom from './SelectOrCustom'
 
 interface ExposureFormProps {
@@ -15,76 +15,6 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
   return (
     <section className="card">
       <h2>Exposition de base</h2>
-      <h3>Matériel</h3>
-      <div className="field-row">
-        <label className="field-label">
-          Agrandisseur
-          <input
-            className="field-input"
-            value={value.agrandisseur}
-            onChange={(e) => set('agrandisseur', e.target.value)}
-            placeholder="ex : LPL 7700"
-          />
-        </label>
-        <label className="field-label">
-          Optique
-          <input
-            className="field-input"
-            value={value.optique}
-            onChange={(e) => set('optique', e.target.value)}
-            placeholder="ex : Rodagon 50mm f/2.8"
-          />
-        </label>
-        <label className="field-label">
-          Hauteur de colonne
-          <input
-            className="field-input"
-            value={value.hauteurColonne}
-            onChange={(e) => set('hauteurColonne', e.target.value)}
-            placeholder="ex : 35 cm"
-          />
-        </label>
-      </div>
-
-      <h3>Papier</h3>
-      <div className="field-row">
-        <label className="field-label">
-          Type de papier
-          <SelectOrCustom
-            value={value.typePapier}
-            options={PAPER_STOCK_PRESETS}
-            onChange={(v) => set('typePapier', v)}
-            placeholder="ex : papier personnalisé"
-          />
-        </label>
-        <label className="field-label">
-          Format papier
-          <SelectOrCustom
-            value={value.formatPapier}
-            options={PAPER_FORMAT_PRESETS}
-            onChange={(v) => set('formatPapier', v)}
-            placeholder="ex : 18x24"
-          />
-        </label>
-        <label className="field-label">
-          Filtre ND
-          <input
-            className="field-input"
-            value={value.filtreND}
-            onChange={(e) => set('filtreND', e.target.value)}
-            placeholder="ex : ND 2 stops"
-          />
-        </label>
-      </div>
-      <label className="split-grading-toggle">
-        <input
-          type="checkbox"
-          checked={value.papierBaryte}
-          onChange={(e) => set('papierBaryte', e.target.checked)}
-        />
-        Papier baryté (FB)
-      </label>
-
       <div className="field-row">
         <label className="field-label">
           Temps d'exposition (s)
@@ -97,11 +27,11 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
         </label>
         <label className="field-label">
           Ouverture de l'agrandisseur
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.ouverture}
-            onChange={(e) => set('ouverture', e.target.value)}
-            placeholder="ex : f/8"
+            options={APERTURE_PRESETS}
+            onChange={(v) => set('ouverture', v)}
+            placeholder="ex : ouverture personnalisée"
           />
         </label>
         <label className="field-label">
@@ -111,6 +41,15 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
             value={value.filtreContraste}
             onChange={(e) => set('filtreContraste', e.target.value)}
             placeholder="ex : Grade 2.5"
+          />
+        </label>
+        <label className="field-label">
+          Filtre ND
+          <input
+            className="field-input"
+            value={value.filtreND}
+            onChange={(e) => set('filtreND', e.target.value)}
+            placeholder="ex : ND 2 stops"
           />
         </label>
       </div>

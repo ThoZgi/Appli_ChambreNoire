@@ -16,4 +16,6 @@ export function isSheetFormat(format: string): boolean {
   return !ROLL_FORMATS.includes(format)
 }
 
-export const COMPENSATION_PRESETS = ['N-2', 'N-1', 'Normal', 'N+1', 'N+2', 'N+3']
+export const COMPENSATION_PRESETS = ['N-3', 'N-2', 'N-1', 'Normal', 'N+1', 'N+2', 'N+3']
+
+export const APERTURE_PRESETS = ['f/2.8', 'f/4', 'f/5.6', 'f/8', 'f/11', 'f/16', 'f/22', 'f/32', 'f/45']

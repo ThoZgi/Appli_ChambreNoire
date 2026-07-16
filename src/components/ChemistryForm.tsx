@@ -42,21 +42,31 @@ function StepFields({
       </label>
       <label className="field-label">
         Dilution
-        <input
-          className="field-input"
-          value={step.dilution}
-          onChange={(e) => set('dilution', e.target.value)}
-          placeholder="ex : 1+9"
-        />
+        <div className="field-with-unknown">
+          <input
+            className="field-input"
+            value={step.dilution}
+            onChange={(e) => set('dilution', e.target.value)}
+            placeholder="ex : 1+9 ou 8% (titrage vinaigre)"
+          />
+          <button type="button" className="btn-link field-unknown-btn" onClick={() => set('dilution', 'Inconnue')}>
+            Inconnue
+          </button>
+        </div>
       </label>
       <label className="field-label">
         Temps
-        <input
-          className="field-input"
-          value={step.temps}
-          onChange={(e) => set('temps', e.target.value)}
-          placeholder="ex : 1 min"
-        />
+        <div className="field-with-unknown">
+          <input
+            className="field-input"
+            value={step.temps}
+            onChange={(e) => set('temps', e.target.value)}
+            placeholder="ex : 1 min"
+          />
+          <button type="button" className="btn-link field-unknown-btn" onClick={() => set('temps', 'Inconnu')}>
+            Inconnu
+          </button>
+        </div>
       </label>
       <label className="field-label">
         Température

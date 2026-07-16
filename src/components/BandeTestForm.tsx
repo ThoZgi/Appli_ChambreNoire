@@ -1,5 +1,6 @@
 import type { BandeTest } from '../types'
 import { STOP_PRESETS } from '../utils/stops'
+import NumberStepper from './NumberStepper'
 
 interface BandeTestFormProps {
   value: BandeTest
@@ -55,14 +56,11 @@ export default function BandeTestForm({ value, onChange, title = 'Bande test' }:
       <div className="field-row">
         <label className="field-label">
           Temps de départ (s)
-          <input
-            type="number"
-            className="field-input"
+          <NumberStepper
             min={0}
             step={0.1}
-            value={value.tempsDepart}
-            onChange={(e) => setTempsDepart(e.target.value)}
-            placeholder="ex : 4"
+            value={parseFloat(value.tempsDepart) || 0}
+            onChange={(v) => setTempsDepart(v.toString())}
           />
         </label>
       </div>
@@ -79,14 +77,7 @@ export default function BandeTestForm({ value, onChange, title = 'Bande test' }:
             {preset.label}
           </button>
         ))}
-        <input
-          type="number"
-          className="field-input stops-custom"
-          min={0.01}
-          step={0.01}
-          value={value.incrementStops}
-          onChange={(e) => setIncrement(Number(e.target.value) || 0)}
-        />
+        <NumberStepper min={0.01} step={0.01} value={value.incrementStops} onChange={setIncrement} />
         <span className="muted">stop(s) / palier</span>
       </div>
 

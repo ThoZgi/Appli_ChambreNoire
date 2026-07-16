@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { addTirage, deletePhoto, getDeveloppement, getPhoto, getTirages } from '../db/db'
 import type { Developpement, Photo, Tirage } from '../types'
-import { emptyBandeTest, emptyChimie, emptyExposition, emptySplitGrading, emptyVirage } from '../types'
+import {
+  emptyBandeTest,
+  emptyChimie,
+  emptyExposition,
+  emptySplitGrading,
+  emptyVirage,
+  emptyZoneMasterReading,
+} from '../types'
 import BlobImage from '../components/BlobImage'
 
 interface PhotoDetailPageProps {
@@ -50,7 +57,9 @@ export default function PhotoDetailPage({
       chimie: emptyChimie(),
       printImageBlob: null,
       dodgeBurnZones: [],
+      methodeExposition: 'bandeTest',
       bandeTest: emptyBandeTest(),
+      zoneMaster: emptyZoneMasterReading(),
       splitGrading: emptySplitGrading(),
       virage: emptyVirage(),
       statut: 'en_cours',
@@ -92,7 +101,10 @@ export default function PhotoDetailPage({
           <div className="photo-detail-img photo-placeholder">Pas encore de tirage</div>
         )}
         <div>
-          <h1>{photo.name}</h1>
+          <h1>
+            {photo.name}
+            {photo.version > 1 && <span className="muted"> (version {photo.version})</span>}
+          </h1>
           {photo.notes && <p className="muted">{photo.notes}</p>}
           {developpement && (
             <p className="muted">

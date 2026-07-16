@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { deleteTirage, getTirage, setPhotoImage, updateTirage } from '../db/db'
-import type { BandeTest, Chimie, DodgeBurnZone, Exposition, SplitGrading, Tirage, TirageStatut, Virage } from '../types'
+import type {
+  BandeTest,
+  Chimie,
+  DodgeBurnZone,
+  Exposition,
+  MethodeExposition,
+  SplitGrading,
+  Tirage,
+  TirageStatut,
+  Virage,
+  ZoneMasterReading,
+} from '../types'
+import MaterielPapierForm from '../components/MaterielPapierForm'
 import ExposureForm from '../components/ExposureForm'
 import BandeTestForm from '../components/BandeTestForm'
+import ZoneMasterForm from '../components/ZoneMasterForm'
 import ChemistryForm from '../components/ChemistryForm'
 import PhotoUpload from '../components/PhotoUpload'
 import SplitGradingForm from '../components/SplitGradingForm'
@@ -65,6 +78,21 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
         next.exposition = { ...prev.exposition, tempsBase: selectedTime }
       }
       return next
+    })
+  }
+
+  function handleZoneMasterChange(zoneMaster: ZoneMasterReading) {
+    setTirage((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        zoneMaster,
+        exposition: {
+          ...prev.exposition,
+          tempsBase: zoneMaster.tempsObtenu,
+          filtreContraste: zoneMaster.gradeObtenu,
+        },
+      }
     })
   }
 
@@ -133,15 +161,39 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
       </div>
 
       <div className={locked ? 'page-locked' : ''}>
-        <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
-
-        <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
+        <MaterielPapierForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
 
         <ChemistryForm
           value={tirage.chimie}
           onChange={(v: Chimie) => updateField('chimie', v)}
           showRincage={tirage.exposition.papierBaryte}
         />
+
+        <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+
+        <div className="stops-row">
+          <span className="field-label-inline">Méthode d'exposition :</span>
+          <button
+            type="button"
+            className={tirage.methodeExposition === 'bandeTest' ? 'chip chip-active' : 'chip'}
+            onClick={() => updateField('methodeExposition', 'bandeTest' as MethodeExposition)}
+          >
+            Bande test
+          </button>
+          <button
+            type="button"
+            className={tirage.methodeExposition === 'zoneMaster' ? 'chip chip-active' : 'chip'}
+            onClick={() => updateField('methodeExposition', 'zoneMaster' as MethodeExposition)}
+          >
+            Sonde ZoneMaster II
+          </button>
+        </div>
+
+        {tirage.methodeExposition === 'bandeTest' ? (
+          <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
+        ) : (
+          <ZoneMasterForm value={tirage.zoneMaster} onChange={handleZoneMasterChange} />
+        )}
 
         <section className="card">
           <h2>Photo du tirage</h2>
@@ -174,6 +226,7 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               photoBlob={tirage.printImageBlob}
               zones={tirage.dodgeBurnZones}
               onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+              tempsBase={tirage.exposition.tempsBase}
             />
           </section>
         )}

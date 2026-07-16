@@ -8,6 +8,7 @@ import {
   emptyVirage,
   emptyAgitation,
   emptyChemistryStep,
+  emptyZoneMasterReading,
 } from '../types'
 import type { ChemistryStep } from '../types'
 
@@ -61,7 +62,9 @@ function normalizeTirage(tirage: Tirage): Tirage {
     ...tirage,
     exposition: { ...emptyExposition(), ...tirage.exposition },
     chimie: { ...emptyChimie(), ...tirage.chimie },
+    methodeExposition: tirage.methodeExposition ?? 'bandeTest',
     bandeTest: tirage.bandeTest ?? emptyBandeTest(),
+    zoneMaster: tirage.zoneMaster ?? emptyZoneMasterReading(),
     splitGrading: tirage.splitGrading ?? emptySplitGrading(),
     virage: tirage.virage ?? emptyVirage(),
     statut: tirage.statut ?? 'en_cours',
@@ -73,6 +76,7 @@ function normalizePhoto(photo: Photo): Photo {
     ...photo,
     developpementId: photo.developpementId ?? null,
     negatifReference: photo.negatifReference ?? null,
+    version: photo.version ?? 1,
   }
 }
 

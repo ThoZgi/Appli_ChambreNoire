@@ -2,16 +2,28 @@ import { useEffect, useRef, useState } from 'react'
 import type { DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
 import { STOP_PRESETS, formatStops } from '../utils/stops'
+import NumberStepper from './NumberStepper'
 
 interface DodgeBurnCanvasProps {
   photoBlob: Blob
   zones: DodgeBurnZone[]
   onZonesChange: (zones: DodgeBurnZone[]) => void
+  tempsBase: string
 }
 
-function zoneLabel(zone: DodgeBurnZone): string {
+function computeZoneSeconds(tempsBase: string, stops: number): number | null {
+  const base = parseFloat(tempsBase)
+  if (!base) return null
+  return base * (Math.pow(2, stops) - 1)
+}
+
+function zoneLabel(zone: DodgeBurnZone, tempsBase: string): string {
   const typeLabel = zone.type === 'dodge' ? 'Dodge' : 'Burn'
-  return `${typeLabel} +${formatStops(zone.stops)} stop`
+  const base = `${typeLabel} +${formatStops(zone.stops)} stop`
+  const seconds = computeZoneSeconds(tempsBase, zone.stops)
+  if (seconds === null) return base
+  const action = zone.type === 'dodge' ? 'à retenir pendant l\'exposition de base' : 'à ajouter après l\'exposition de base'
+  return `${base} — ${seconds.toFixed(1)}s ${action}`
 }
 
 function drawZoneLabel(
@@ -55,7 +67,7 @@ function relativePoint(
   }
 }
 
-export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange }: DodgeBurnCanvasProps) {
+export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, tempsBase }: DodgeBurnCanvasProps) {
   const imageUrl = useObjectUrl(photoBlob)
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -189,14 +201,7 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange }: Dod
               {preset.label}
             </button>
           ))}
-          <input
-            type="number"
-            className="field-input stops-custom"
-            min={0.05}
-            step={0.05}
-            value={stops}
-            onChange={(e) => setStops(Number(e.target.value) || 0)}
-          />
+          <NumberStepper min={0.05} step={0.05} value={stops} onChange={setStops} />
           <span className="muted">stop(s)</span>
         </div>
 
@@ -230,7 +235,7 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange }: Dod
           {zones.map((zone) => (
             <li key={zone.id} className="zone-list-item">
               <span className={zone.type === 'dodge' ? 'zone-tag zone-tag-dodge' : 'zone-tag zone-tag-burn'}>
-                {zoneLabel(zone)}
+                {zoneLabel(zone, tempsBase)}
               </span>
               <button type="button" className="btn-link" onClick={() => handleDeleteZone(zone.id)}>
                 Supprimer

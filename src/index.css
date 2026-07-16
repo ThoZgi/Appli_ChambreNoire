@@ -701,3 +701,63 @@ button {
   flex-direction: column;
   gap: 6px;
 }
+
+.number-stepper {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.number-stepper-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 28px;
+  min-width: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.number-stepper-btn:hover {
+  border-color: var(--accent);
+}
+
+.number-stepper-btn:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.number-stepper-btn:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.number-stepper-input {
+  width: 56px;
+  text-align: center;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  -moz-appearance: textfield;
+}
+
+.number-stepper-input::-webkit-inner-spin-button,
+.number-stepper-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.field-with-unknown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-with-unknown .field-input {
+  flex: 1;
+}
+
+.field-unknown-btn {
+  font-size: 12px;
+  white-space: nowrap;
+  padding: 4px 0;
+}
