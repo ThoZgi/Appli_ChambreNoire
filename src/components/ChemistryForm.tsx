@@ -1,5 +1,5 @@
 import type { Chimie, ChemistryStep } from '../types'
-import { DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
+import { PAPER_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import SelectOrCustom from './SelectOrCustom'
 
 interface ChemistryFormProps {
@@ -9,7 +9,7 @@ interface ChemistryFormProps {
 }
 
 const STEP_LABELS: { key: keyof Pick<Chimie, 'revelateur' | 'bainArret' | 'fixateur' | 'rincage'>; label: string; options: string[] }[] = [
-  { key: 'revelateur', label: 'Révélateur', options: DEVELOPER_PRESETS },
+  { key: 'revelateur', label: 'Révélateur', options: PAPER_DEVELOPER_PRESETS },
   { key: 'bainArret', label: "Bain d'arrêt", options: STOP_BATH_PRESETS },
   { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS },
 ]

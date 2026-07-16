@@ -12,7 +12,7 @@ export const FILM_STOCK_PRESETS = [
   'Fomapan 400',
 ]
 
-export const DEVELOPER_PRESETS = [
+export const FILM_DEVELOPER_PRESETS = [
   'Ilford ID-11',
   'Kodak D-76',
   'Ilford Perceptol',
@@ -20,6 +20,15 @@ export const DEVELOPER_PRESETS = [
   'Kodak HC-110',
   'Rodinal',
   'Kodak Xtol',
+]
+
+export const PAPER_DEVELOPER_PRESETS = [
+  'Ilford Multigrade Developer',
+  'Ilford PQ Universal',
+  'Kodak Dektol',
+  'Fotospeed PD',
+  'Moersch Eco 2',
+  'Tetenal Eukobrom',
 ]
 
 export const STOP_BATH_PRESETS = ['Ilford Ilfostop', 'Kodak Indicator Stop Bath', 'Eau (arrêt simple)']

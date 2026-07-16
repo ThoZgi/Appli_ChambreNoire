@@ -1,5 +1,5 @@
 import type { ChemistryStep, DeveloppementChimie } from '../types'
-import { DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
+import { FILM_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import SelectOrCustom from './SelectOrCustom'
 import AgitationPicker from './AgitationPicker'
 
@@ -14,7 +14,7 @@ const STEP_LABELS: {
   options: string[]
 }[] = [
   { key: 'premouillage', label: 'Prémouillage', options: RINSE_PRESETS },
-  { key: 'revelateur', label: 'Révélateur', options: DEVELOPER_PRESETS },
+  { key: 'revelateur', label: 'Révélateur', options: FILM_DEVELOPER_PRESETS },
   { key: 'bainArret', label: "Bain d'arrêt", options: STOP_BATH_PRESETS },
   { key: 'fixateur', label: 'Fixateur', options: FIXER_PRESETS },
   { key: 'rincage', label: 'Rinçage', options: RINSE_PRESETS },
