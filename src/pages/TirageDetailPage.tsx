@@ -25,7 +25,8 @@ import SplitGradingForm from '../components/SplitGradingForm'
 import ToningForm from '../components/ToningForm'
 import DodgeBurnCanvas from '../components/DodgeBurnCanvas'
 import { exportTirageToPdf } from '../utils/exportTirage'
-import { pushPullLabel } from '../utils/formats'
+import { APERTURE_PRESETS, pushPullLabel } from '../utils/formats'
+import SelectOrCustom from '../components/SelectOrCustom'
 
 interface TirageDetailPageProps {
   tirageId: string
@@ -325,6 +326,16 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
                   Sonde ZoneMaster II
                 </button>
               </div>
+
+              <label className="field-label">
+                Ouverture de l'agrandisseur
+                <SelectOrCustom
+                  value={tirage.exposition.ouverture}
+                  options={APERTURE_PRESETS}
+                  onChange={(v) => updateField('exposition', { ...tirage.exposition, ouverture: v })}
+                  placeholder="ex : ouverture personnalisée"
+                />
+              </label>
 
               {tirage.methodeExposition === 'bandeTest' ? (
                 <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />

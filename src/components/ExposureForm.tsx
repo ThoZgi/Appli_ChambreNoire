@@ -1,6 +1,4 @@
 import type { Exposition } from '../types'
-import { APERTURE_PRESETS } from '../utils/formats'
-import SelectOrCustom from './SelectOrCustom'
 
 interface ExposureFormProps {
   value: Exposition
@@ -23,15 +21,6 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
             value={value.tempsBase}
             onChange={(e) => set('tempsBase', e.target.value)}
             placeholder="ex : 12"
-          />
-        </label>
-        <label className="field-label">
-          Ouverture de l'agrandisseur
-          <SelectOrCustom
-            value={value.ouverture}
-            options={APERTURE_PRESETS}
-            onChange={(v) => set('ouverture', v)}
-            placeholder="ex : ouverture personnalisée"
           />
         </label>
         <label className="field-label">
