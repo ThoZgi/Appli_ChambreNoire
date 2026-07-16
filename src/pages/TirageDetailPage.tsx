@@ -54,9 +54,22 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
   })
   const saveTimeout = useRef<number | null>(null)
   const skipNextSave = useRef(true)
+  const phaseRefs = useRef<Record<PhaseKey, HTMLDivElement | null>>({
+    materiel: null,
+    exposition: null,
+    tirage: null,
+    notes: null,
+  })
 
   function togglePhase(key: PhaseKey) {
     setOpenPhases((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  function openAndScroll(key: PhaseKey) {
+    setOpenPhases((prev) => ({ ...prev, [key]: true }))
+    requestAnimationFrame(() => {
+      phaseRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   useEffect(() => {
@@ -236,8 +249,34 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
         </section>
       )}
 
+      <nav className="phase-quicknav" aria-label="Navigation rapide">
+        {(
+          [
+            ['materiel', '1'],
+            ['exposition', '2'],
+            ['tirage', '3'],
+            ['notes', '4'],
+          ] as [PhaseKey, string][]
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={openPhases[key] ? 'phase-quicknav-btn phase-quicknav-btn-active' : 'phase-quicknav-btn'}
+            onClick={() => openAndScroll(key)}
+            title={`Ouvrir la section ${label}`}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
       <div className={locked ? 'tirage-sections page-locked' : 'tirage-sections'}>
-        <div className="phase">
+        <div
+          className="phase"
+          ref={(el) => {
+            phaseRefs.current.materiel = el
+          }}
+        >
           <button type="button" className="phase-title" onClick={() => togglePhase('materiel')}>
             1. Matériel &amp; chimie {openPhases.materiel ? '▾' : '▸'}
           </button>
@@ -258,7 +297,12 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
           )}
         </div>
 
-        <div className="phase">
+        <div
+          className="phase"
+          ref={(el) => {
+            phaseRefs.current.exposition = el
+          }}
+        >
           <button type="button" className="phase-title" onClick={() => togglePhase('exposition')}>
             2. Détermination de l'exposition {openPhases.exposition ? '▾' : '▸'}
           </button>
@@ -293,7 +337,12 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
           )}
         </div>
 
-        <div className="phase">
+        <div
+          className="phase"
+          ref={(el) => {
+            phaseRefs.current.tirage = el
+          }}
+        >
           <button type="button" className="phase-title" onClick={() => togglePhase('tirage')}>
             3. Tirage &amp; finitions {openPhases.tirage ? '▾' : '▸'}
           </button>
@@ -338,7 +387,12 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
           )}
         </div>
 
-        <div className="phase">
+        <div
+          className="phase"
+          ref={(el) => {
+            phaseRefs.current.notes = el
+          }}
+        >
           <button type="button" className="phase-title" onClick={() => togglePhase('notes')}>
             4. Notes {openPhases.notes ? '▾' : '▸'}
           </button>
