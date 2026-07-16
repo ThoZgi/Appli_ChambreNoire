@@ -1,11 +1,15 @@
 import type { BandeTest } from '../types'
 import { STOP_PRESETS } from '../utils/stops'
+import { APERTURE_PRESETS } from '../utils/formats'
 import NumberStepper from './NumberStepper'
+import SelectOrCustom from './SelectOrCustom'
 
 interface BandeTestFormProps {
   value: BandeTest
   onChange: (value: BandeTest, selectedTime?: string) => void
   title?: string
+  ouverture?: string
+  onOuvertureChange?: (value: string) => void
 }
 
 function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
@@ -13,7 +17,13 @@ function computeStepTime(tempsDepart: string, incrementStops: number, index: num
   return base * Math.pow(2, index * incrementStops)
 }
 
-export default function BandeTestForm({ value, onChange, title = 'Bande test' }: BandeTestFormProps) {
+export default function BandeTestForm({
+  value,
+  onChange,
+  title = 'Bande test',
+  ouverture,
+  onOuvertureChange,
+}: BandeTestFormProps) {
   function setTempsDepart(tempsDepart: string) {
     onChange({ ...value, tempsDepart })
   }
@@ -63,6 +73,17 @@ export default function BandeTestForm({ value, onChange, title = 'Bande test' }:
             onChange={(v) => setTempsDepart(v.toString())}
           />
         </label>
+        {onOuvertureChange && (
+          <label className="field-label">
+            Ouverture de l'agrandisseur
+            <SelectOrCustom
+              value={ouverture ?? ''}
+              options={APERTURE_PRESETS}
+              onChange={onOuvertureChange}
+              placeholder="ex : ouverture personnalisée"
+            />
+          </label>
+        )}
       </div>
 
       <div className="stops-row">

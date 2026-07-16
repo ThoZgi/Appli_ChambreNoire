@@ -170,6 +170,9 @@ p {
   margin: 0;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
+  /* Stay clickable even inside a locked (pointer-events: none) section — collapsing/expanding is
+     navigation, not editing, so it shouldn't require unlocking first. */
+  pointer-events: auto;
 }
 
 .phase-title:hover {

@@ -327,20 +327,26 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
                 </button>
               </div>
 
-              <label className="field-label">
-                Ouverture de l'agrandisseur
-                <SelectOrCustom
-                  value={tirage.exposition.ouverture}
-                  options={APERTURE_PRESETS}
-                  onChange={(v) => updateField('exposition', { ...tirage.exposition, ouverture: v })}
-                  placeholder="ex : ouverture personnalisée"
-                />
-              </label>
-
               {tirage.methodeExposition === 'bandeTest' ? (
-                <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
+                <BandeTestForm
+                  value={tirage.bandeTest}
+                  onChange={handleBandeTestChange}
+                  ouverture={tirage.exposition.ouverture}
+                  onOuvertureChange={(v) => updateField('exposition', { ...tirage.exposition, ouverture: v })}
+                />
               ) : (
-                <ZoneMasterForm value={tirage.zoneMaster} onChange={handleZoneMasterChange} />
+                <>
+                  <label className="field-label">
+                    Ouverture de l'agrandisseur
+                    <SelectOrCustom
+                      value={tirage.exposition.ouverture}
+                      options={APERTURE_PRESETS}
+                      onChange={(v) => updateField('exposition', { ...tirage.exposition, ouverture: v })}
+                      placeholder="ex : ouverture personnalisée"
+                    />
+                  </label>
+                  <ZoneMasterForm value={tirage.zoneMaster} onChange={handleZoneMasterChange} />
+                </>
               )}
 
               <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
