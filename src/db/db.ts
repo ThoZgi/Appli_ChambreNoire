@@ -95,7 +95,17 @@ function normalizeDeveloppement(developpement: Developpement): Developpement {
 
   return {
     ...developpement,
-    negatifs: developpement.negatifs.map((n) => ({ ...n, compensation: n.compensation ?? '' })),
+    appareilPhoto: developpement.appareilPhoto ?? '',
+    objectifPriseDeVue: developpement.objectifPriseDeVue ?? '',
+    plancheContactBlob: developpement.plancheContactBlob ?? null,
+    negatifs: developpement.negatifs.map((n) => ({
+      ...n,
+      compensation: n.compensation ?? '',
+      ouverture: n.ouverture ?? '',
+      vitesse: n.vitesse ?? '',
+      datePriseDeVue: n.datePriseDeVue ?? '',
+      lieu: n.lieu ?? '',
+    })),
     chimie: {
       premouillage: cleanStep(chimie.premouillage),
       revelateur: cleanStep(chimie.revelateur),

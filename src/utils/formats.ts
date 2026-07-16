@@ -19,3 +19,18 @@ export function isSheetFormat(format: string): boolean {
 export const COMPENSATION_PRESETS = ['N-3', 'N-2', 'N-1', 'Normal', 'N+1', 'N+2', 'N+3']
 
 export const APERTURE_PRESETS = ['f/2.8', 'f/4', 'f/5.6', 'f/8', 'f/11', 'f/16', 'f/22', 'f/32', 'f/45']
+
+export const SHUTTER_SPEED_PRESETS = [
+  '1/1000',
+  '1/500',
+  '1/250',
+  '1/125',
+  '1/60',
+  '1/30',
+  '1/15',
+  '1/8',
+  '1/4',
+  '1/2',
+  '1s',
+  'B (pose)',
+]

@@ -4,6 +4,7 @@ import type { DeveloppementChimie, Developpement, NegatifRef } from '../types'
 import NegatifList from '../components/NegatifList'
 import DevChemistryForm from '../components/DevChemistryForm'
 import SelectOrCustom from '../components/SelectOrCustom'
+import PhotoUpload from '../components/PhotoUpload'
 import { FORMAT_PRESETS } from '../utils/formats'
 import { FILM_STOCK_PRESETS } from '../utils/presets'
 
@@ -144,6 +145,35 @@ export default function DeveloppementDetailPage({
               />
             </label>
           </div>
+          <div className="field-row">
+            <label className="field-label">
+              Boîtier
+              <input
+                className="field-input"
+                value={developpement.appareilPhoto}
+                onChange={(e) => updateField('appareilPhoto', e.target.value)}
+                placeholder="ex : Nikon FM2"
+              />
+            </label>
+            <label className="field-label">
+              Objectif
+              <input
+                className="field-input"
+                value={developpement.objectifPriseDeVue}
+                onChange={(e) => updateField('objectifPriseDeVue', e.target.value)}
+                placeholder="ex : Nikkor 50mm f/1.8"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="card">
+          <h2>Planche contact</h2>
+          <PhotoUpload
+            label="Planche contact (scan)"
+            value={developpement.plancheContactBlob}
+            onChange={(blob) => updateField('plancheContactBlob', blob)}
+          />
         </section>
 
         <NegatifList

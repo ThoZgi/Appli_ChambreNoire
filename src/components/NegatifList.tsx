@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import type { NegatifRef } from '../types'
-import { COMPENSATION_PRESETS, FORMAT_EXPOSURE_PRESETS, isSheetFormat } from '../utils/formats'
+import { emptyNegatifRef } from '../types'
+import {
+  APERTURE_PRESETS,
+  COMPENSATION_PRESETS,
+  FORMAT_EXPOSURE_PRESETS,
+  SHUTTER_SPEED_PRESETS,
+  isSheetFormat,
+} from '../utils/formats'
 import NumberStepper from './NumberStepper'
+import SelectOrCustom from './SelectOrCustom'
 
 interface NegatifListProps {
   value: NegatifRef[]
@@ -13,13 +21,20 @@ export default function NegatifList({ value, onChange, format }: NegatifListProp
   const exposurePresets = FORMAT_EXPOSURE_PRESETS[format]
   const [genCount, setGenCount] = useState(exposurePresets?.[0] ?? 36)
   const showCompensation = isSheetFormat(format)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+
+  function toggleExpanded(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function addNegatif() {
     const last = value[value.length - 1]
-    onChange([
-      ...value,
-      { id: crypto.randomUUID(), reference: '', compensation: last?.compensation ?? '', notes: '' },
-    ])
+    onChange([...value, { ...emptyNegatifRef(), compensation: last?.compensation ?? '' }])
   }
 
   function removeNegatif(id: string) {
@@ -32,10 +47,8 @@ export default function NegatifList({ value, onChange, format }: NegatifListProp
 
   function generate() {
     const negatifs: NegatifRef[] = Array.from({ length: genCount }, (_, i) => ({
-      id: crypto.randomUUID(),
+      ...emptyNegatifRef(),
       reference: String(i + 1),
-      compensation: '',
-      notes: '',
     }))
     onChange(negatifs)
   }
@@ -99,9 +112,52 @@ export default function NegatifList({ value, onChange, format }: NegatifListProp
                   onChange={(e) => updateNegatif(negatif.id, { notes: e.target.value })}
                   placeholder="Note (ex : sujet, sur/sous-exposée...)"
                 />
+                <button type="button" className="btn-link" onClick={() => toggleExpanded(negatif.id)}>
+                  {expandedIds.has(negatif.id) ? 'Réglages ▾' : 'Réglages ▸'}
+                </button>
                 <button type="button" className="btn-link" onClick={() => removeNegatif(negatif.id)}>
                   Supprimer
                 </button>
+                {expandedIds.has(negatif.id) && (
+                  <div className="negatif-capture-details">
+                    <label className="field-label">
+                      Ouverture
+                      <SelectOrCustom
+                        value={negatif.ouverture}
+                        options={APERTURE_PRESETS}
+                        onChange={(v) => updateNegatif(negatif.id, { ouverture: v })}
+                        placeholder="ex : ouverture personnalisée"
+                      />
+                    </label>
+                    <label className="field-label">
+                      Vitesse
+                      <SelectOrCustom
+                        value={negatif.vitesse}
+                        options={SHUTTER_SPEED_PRESETS}
+                        onChange={(v) => updateNegatif(negatif.id, { vitesse: v })}
+                        placeholder="ex : vitesse personnalisée"
+                      />
+                    </label>
+                    <label className="field-label">
+                      Date de prise de vue
+                      <input
+                        className="field-input"
+                        value={negatif.datePriseDeVue}
+                        onChange={(e) => updateNegatif(negatif.id, { datePriseDeVue: e.target.value })}
+                        placeholder="ex : 12/07/2026"
+                      />
+                    </label>
+                    <label className="field-label">
+                      Lieu
+                      <input
+                        className="field-input"
+                        value={negatif.lieu}
+                        onChange={(e) => updateNegatif(negatif.id, { lieu: e.target.value })}
+                        placeholder="ex : Montagne Sainte-Victoire"
+                      />
+                    </label>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

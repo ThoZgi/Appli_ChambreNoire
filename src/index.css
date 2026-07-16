@@ -625,6 +625,16 @@ button {
   gap: 4px;
 }
 
+.negatif-capture-details {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .negatif-details summary {
   cursor: pointer;
   color: var(--text-muted);

@@ -95,6 +95,10 @@ export interface NegatifRef {
   reference: string
   compensation: string
   notes: string
+  ouverture: string
+  vitesse: string
+  datePriseDeVue: string
+  lieu: string
 }
 
 export interface Developpement {
@@ -104,6 +108,9 @@ export interface Developpement {
   format: string
   filmStock: string
   sensibilite: string
+  appareilPhoto: string
+  objectifPriseDeVue: string
+  plancheContactBlob: Blob | null
   negatifs: NegatifRef[]
   chimie: DeveloppementChimie
   notes: string
@@ -228,8 +235,24 @@ export function emptyDeveloppement(): Omit<Developpement, 'id' | 'createdAt'> {
     format: '',
     filmStock: '',
     sensibilite: '',
+    appareilPhoto: '',
+    objectifPriseDeVue: '',
+    plancheContactBlob: null,
     negatifs: [],
     chimie: emptyDeveloppementChimie(),
     notes: '',
+  }
+}
+
+export function emptyNegatifRef(): NegatifRef {
+  return {
+    id: crypto.randomUUID(),
+    reference: '',
+    compensation: '',
+    notes: '',
+    ouverture: '',
+    vitesse: '',
+    datePriseDeVue: '',
+    lieu: '',
   }
 }
