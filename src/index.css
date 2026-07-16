@@ -155,6 +155,8 @@ p {
 
 .phase-title {
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
   align-self: flex-start;
   color: var(--accent);
   background: rgba(217, 84, 47, 0.12);
@@ -166,6 +168,31 @@ p {
   border-radius: 999px;
   padding: 7px 16px;
   margin: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.phase-title:hover {
+  background: rgba(217, 84, 47, 0.2);
+  border-color: var(--accent);
+}
+
+.negatif-info-card {
+  background: var(--bg-input);
+}
+
+.negatif-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.negatif-info-row strong {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 .save-status {
