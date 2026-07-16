@@ -1,6 +1,7 @@
 import type { Chimie, ChemistryStep } from '../types'
 import { PAPER_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import SelectOrCustom from './SelectOrCustom'
+import NumberStepper from './NumberStepper'
 
 interface ChemistryFormProps {
   value: Chimie
@@ -70,12 +71,10 @@ function StepFields({
       </label>
       <label className="field-label">
         Température
-        <input
-          className="field-input"
-          value={step.temperature}
-          onChange={(e) => set('temperature', e.target.value)}
-          placeholder="ex : 20°C"
-        />
+        <div className="stops-row">
+          <NumberStepper value={step.temperature} onChange={(v) => set('temperature', v)} step={0.5} />
+          <span className="muted">°C</span>
+        </div>
       </label>
     </div>
   )

@@ -1,6 +1,6 @@
 import type { Exposition } from '../types'
 import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS } from '../utils/paperPresets'
-import { LENS_PRESETS } from '../utils/equipmentPresets'
+import { ENLARGER_PRESETS, LENS_PRESETS } from '../utils/equipmentPresets'
 import SelectOrCustom from './SelectOrCustom'
 
 interface MaterielPapierFormProps {
@@ -20,11 +20,11 @@ export default function MaterielPapierForm({ value, onChange }: MaterielPapierFo
       <div className="field-row">
         <label className="field-label">
           Agrandisseur
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.agrandisseur}
-            onChange={(e) => set('agrandisseur', e.target.value)}
-            placeholder="ex : LPL 7700"
+            options={ENLARGER_PRESETS}
+            onChange={(v) => set('agrandisseur', v)}
+            placeholder="ex : agrandisseur personnalisé"
           />
         </label>
         <label className="field-label">

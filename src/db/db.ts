@@ -57,11 +57,32 @@ function makeId() {
   return crypto.randomUUID()
 }
 
+function parseTemperature(value: unknown): number {
+  if (typeof value === 'number' && !Number.isNaN(value)) return value
+  if (typeof value === 'string') {
+    const n = parseFloat(value)
+    if (!Number.isNaN(n)) return n
+  }
+  return 20
+}
+
+function cleanChemistryStep(step: unknown): ChemistryStep {
+  const merged = { ...emptyChemistryStep(), ...(step as object) }
+  return { ...merged, temperature: parseTemperature((step as { temperature?: unknown } | undefined)?.temperature) }
+}
+
 function normalizeTirage(tirage: Tirage): Tirage {
+  const chimie = { ...emptyChimie(), ...tirage.chimie }
   return {
     ...tirage,
     exposition: { ...emptyExposition(), ...tirage.exposition },
-    chimie: { ...emptyChimie(), ...tirage.chimie },
+    chimie: {
+      ...chimie,
+      revelateur: cleanChemistryStep(chimie.revelateur),
+      bainArret: cleanChemistryStep(chimie.bainArret),
+      fixateur: cleanChemistryStep(chimie.fixateur),
+      rincage: cleanChemistryStep(chimie.rincage),
+    },
     methodeExposition: tirage.methodeExposition ?? 'bandeTest',
     bandeTest: tirage.bandeTest ?? emptyBandeTest(),
     zoneMaster: tirage.zoneMaster ?? emptyZoneMasterReading(),
@@ -82,10 +103,6 @@ function normalizePhoto(photo: Photo): Photo {
 
 function normalizeDeveloppement(developpement: Developpement): Developpement {
   const chimie = developpement.chimie as unknown as Record<string, unknown>
-  const cleanStep = (step: unknown): ChemistryStep => {
-    const { nom, dilution, temps, temperature } = { ...emptyChemistryStep(), ...(step as object) }
-    return { nom, dilution, temps, temperature }
-  }
   const revelateurRaw = chimie.revelateur as { agitation?: unknown } | undefined
   const existingAgitation = chimie.agitationRevelateur ?? revelateurRaw?.agitation
   const agitationRevelateur =
@@ -107,12 +124,12 @@ function normalizeDeveloppement(developpement: Developpement): Developpement {
       lieu: n.lieu ?? '',
     })),
     chimie: {
-      premouillage: cleanStep(chimie.premouillage),
-      revelateur: cleanStep(chimie.revelateur),
+      premouillage: cleanChemistryStep(chimie.premouillage),
+      revelateur: cleanChemistryStep(chimie.revelateur),
       agitationRevelateur,
-      bainArret: cleanStep(chimie.bainArret),
-      fixateur: cleanStep(chimie.fixateur),
-      rincage: cleanStep(chimie.rincage),
+      bainArret: cleanChemistryStep(chimie.bainArret),
+      fixateur: cleanChemistryStep(chimie.fixateur),
+      rincage: cleanChemistryStep(chimie.rincage),
     },
   }
 }

@@ -13,7 +13,7 @@ export interface ChemistryStep {
   nom: string
   dilution: string
   temps: string
-  temperature: string
+  temperature: number
 }
 
 export interface Chimie {
@@ -155,7 +155,7 @@ export interface Tirage {
 }
 
 export function emptyChemistryStep(): ChemistryStep {
-  return { nom: '', dilution: '', temps: '', temperature: '20°C' }
+  return { nom: '', dilution: '', temps: '', temperature: 20 }
 }
 
 export function emptyExposition(): Exposition {

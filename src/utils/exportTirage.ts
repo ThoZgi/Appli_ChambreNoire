@@ -74,7 +74,7 @@ export async function exportTirageToPdf(tirage: Tirage): Promise<void> {
     if (step.nom) chimieRows.push([`${label} — produit`, step.nom])
     if (step.dilution) chimieRows.push([`${label} — dilution`, step.dilution])
     if (step.temps) chimieRows.push([`${label} — temps`, step.temps])
-    if (step.temperature) chimieRows.push([`${label} — température`, step.temperature])
+    chimieRows.push([`${label} — température`, `${step.temperature}°C`])
   }
   if (tirage.chimie.notes) chimieRows.push(['Notes chimie', tirage.chimie.notes])
   addSection('Chimie', chimieRows)

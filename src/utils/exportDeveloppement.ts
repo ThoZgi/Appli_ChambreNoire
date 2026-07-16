@@ -39,7 +39,7 @@ export function exportDeveloppementCsv(developpement: Developpement): void {
     chimie.revelateur.nom,
     chimie.revelateur.dilution,
     chimie.revelateur.temps,
-    chimie.revelateur.temperature,
+    `${chimie.revelateur.temperature}°C`,
     chimie.agitationRevelateur.premiereAgitation,
     chimie.agitationRevelateur.typeAction,
     chimie.agitationRevelateur.quantite,
