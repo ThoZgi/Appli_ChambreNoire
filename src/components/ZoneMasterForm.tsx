@@ -1,4 +1,6 @@
 import type { ZoneMasterReading } from '../types'
+import { FILTER_GRADE_PRESETS } from '../utils/formats'
+import SelectOrCustom from './SelectOrCustom'
 
 interface ZoneMasterFormProps {
   value: ZoneMasterReading
@@ -51,11 +53,11 @@ export default function ZoneMasterForm({ value, onChange }: ZoneMasterFormProps)
         </label>
         <label className="field-label">
           Grade obtenu
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.gradeObtenu}
-            onChange={(e) => set('gradeObtenu', e.target.value)}
-            placeholder="ex : Grade 2.5"
+            options={FILTER_GRADE_PRESETS}
+            onChange={(v) => set('gradeObtenu', v)}
+            placeholder="ex : grade personnalisé"
           />
         </label>
       </div>

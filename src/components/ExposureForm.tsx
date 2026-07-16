@@ -1,5 +1,5 @@
 import type { Exposition } from '../types'
-import { APERTURE_PRESETS } from '../utils/formats'
+import { APERTURE_PRESETS, FILTER_GRADE_PRESETS } from '../utils/formats'
 import SelectOrCustom from './SelectOrCustom'
 
 interface ExposureFormProps {
@@ -36,11 +36,11 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
         </label>
         <label className="field-label">
           Filtre de contraste
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.filtreContraste}
-            onChange={(e) => set('filtreContraste', e.target.value)}
-            placeholder="ex : Grade 2.5"
+            options={FILTER_GRADE_PRESETS}
+            onChange={(v) => set('filtreContraste', v)}
+            placeholder="ex : grade personnalisé"
           />
         </label>
         <label className="field-label">

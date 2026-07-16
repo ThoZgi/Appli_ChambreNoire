@@ -1,7 +1,9 @@
 import type { BandeTest, DodgeBurnZone, GradeTestStrip, SplitGrading } from '../types'
+import { FILTER_GRADE_PRESETS } from '../utils/formats'
 import BandeTestForm from './BandeTestForm'
 import HighlightZoneMarker from './HighlightZoneMarker'
 import DodgeBurnCanvas from './DodgeBurnCanvas'
+import SelectOrCustom from './SelectOrCustom'
 
 interface SplitGradingFormProps {
   value: SplitGrading
@@ -44,11 +46,11 @@ export default function SplitGradingForm({ value, onChange, printImageBlob }: Sp
             <h3>Grade doux — hautes lumières</h3>
             <label className="field-label">
               Grade
-              <input
-                className="field-input"
+              <SelectOrCustom
                 value={value.grade00.grade}
-                onChange={(e) => updateGradeStrip('grade00', { ...value.grade00, grade: e.target.value })}
-                placeholder="ex : 00 ou 0"
+                options={FILTER_GRADE_PRESETS}
+                onChange={(v) => updateGradeStrip('grade00', { ...value.grade00, grade: v })}
+                placeholder="ex : grade personnalisé"
               />
             </label>
             <BandeTestForm
@@ -76,11 +78,11 @@ export default function SplitGradingForm({ value, onChange, printImageBlob }: Sp
             <h3>Grade dur — contraste</h3>
             <label className="field-label">
               Grade
-              <input
-                className="field-input"
+              <SelectOrCustom
                 value={value.gradeDur.grade}
-                onChange={(e) => updateGradeStrip('gradeDur', { ...value.gradeDur, grade: e.target.value })}
-                placeholder="ex : 5"
+                options={FILTER_GRADE_PRESETS}
+                onChange={(v) => updateGradeStrip('gradeDur', { ...value.gradeDur, grade: v })}
+                placeholder="ex : grade personnalisé"
               />
             </label>
             <BandeTestForm

@@ -73,6 +73,10 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
     })
   }
 
+  function closePhase(key: PhaseKey) {
+    setOpenPhases((prev) => ({ ...prev, [key]: false }))
+  }
+
   useEffect(() => {
     setLoading(true)
     skipNextSave.current = true
@@ -264,7 +268,8 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
             type="button"
             className={openPhases[key] ? 'phase-quicknav-btn phase-quicknav-btn-active' : 'phase-quicknav-btn'}
             onClick={() => openAndScroll(key)}
-            title={`Ouvrir la section ${label}`}
+            onDoubleClick={() => closePhase(key)}
+            title={`Ouvrir la section ${label} (double-clic pour la fermer)`}
           >
             {label}
           </button>
