@@ -30,16 +30,17 @@ export function drawZoneLabel(
   const label = `${zone.type === 'dodge' ? '-' : '+'}${formatStops(zone.stops)}`
   const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
 
-  ctx.font = 'bold 13px system-ui, sans-serif'
+  const fontSize = canvas.width * 0.025
+  ctx.font = `bold ${fontSize}px system-ui, sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const paddingX = 6
+  const paddingX = fontSize * 0.46
   const width = ctx.measureText(label).width + paddingX * 2
-  const height = 18
+  const height = fontSize * 1.38
 
   ctx.fillStyle = `rgba(${color}, 0.95)`
   ctx.beginPath()
-  ctx.roundRect(x - width / 2, y - height / 2, width, height, 4)
+  ctx.roundRect(x - width / 2, y - height / 2, width, height, fontSize * 0.3)
   ctx.fill()
 
   ctx.fillStyle = '#fff'
