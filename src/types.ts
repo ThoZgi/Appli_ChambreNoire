@@ -66,6 +66,7 @@ export interface GradeTestStrip {
   grade: string
   bandeTest: BandeTest
   tempsChoisi: string
+  dodgeBurnZones: DodgeBurnZone[]
 }
 
 export interface SplitGrading {
@@ -222,7 +223,7 @@ export function emptyZoneMasterReading(): ZoneMasterReading {
 }
 
 export function emptyGradeTestStrip(grade: string): GradeTestStrip {
-  return { grade, bandeTest: emptyBandeTest(), tempsChoisi: '' }
+  return { grade, bandeTest: emptyBandeTest(), tempsChoisi: '', dodgeBurnZones: [] }
 }
 
 export function emptySplitGrading(): SplitGrading {

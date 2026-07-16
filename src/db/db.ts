@@ -8,9 +8,10 @@ import {
   emptyVirage,
   emptyAgitation,
   emptyChemistryStep,
+  emptyGradeTestStrip,
   emptyZoneMasterReading,
 } from '../types'
-import type { ChemistryStep } from '../types'
+import type { ChemistryStep, GradeTestStrip } from '../types'
 import type { ChimieStockUsage } from '../utils/chimieCapacity'
 
 interface ChambreNoireDB extends DBSchema {
@@ -90,8 +91,13 @@ function cleanChemistryStep(step: unknown): ChemistryStep {
   }
 }
 
+function cleanGradeTestStrip(strip: GradeTestStrip): GradeTestStrip {
+  return { ...emptyGradeTestStrip(strip.grade), ...strip, dodgeBurnZones: strip.dodgeBurnZones ?? [] }
+}
+
 function normalizeTirage(tirage: Tirage): Tirage {
   const chimie = { ...emptyChimie(), ...tirage.chimie }
+  const splitGrading = { ...emptySplitGrading(), ...tirage.splitGrading }
   return {
     ...tirage,
     exposition: { ...emptyExposition(), ...tirage.exposition },
@@ -106,7 +112,11 @@ function normalizeTirage(tirage: Tirage): Tirage {
     methodeExposition: tirage.methodeExposition ?? 'bandeTest',
     bandeTest: tirage.bandeTest ?? emptyBandeTest(),
     zoneMaster: tirage.zoneMaster ?? emptyZoneMasterReading(),
-    splitGrading: tirage.splitGrading ?? emptySplitGrading(),
+    splitGrading: {
+      ...splitGrading,
+      grade00: cleanGradeTestStrip(splitGrading.grade00),
+      gradeDur: cleanGradeTestStrip(splitGrading.gradeDur),
+    },
     virage: tirage.virage ?? emptyVirage(),
     statut: tirage.statut ?? 'en_cours',
   }

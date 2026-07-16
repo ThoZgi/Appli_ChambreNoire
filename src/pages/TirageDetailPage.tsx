@@ -178,88 +178,99 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
         </button>
       </div>
 
-      <div className={locked ? 'page-locked' : ''}>
-        <MaterielPapierForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+      <div className={locked ? 'tirage-sections page-locked' : 'tirage-sections'}>
+        <div className="phase">
+          <h2 className="phase-title">1. Matériel &amp; chimie</h2>
+          <MaterielPapierForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
 
-        <ChemistryForm
-          value={tirage.chimie}
-          onChange={(v: Chimie) => updateField('chimie', v)}
-          showRincage={tirage.exposition.papierBaryte}
-          chimieStocks={chimieStocks}
-        />
-
-        <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
-
-        <div className="stops-row">
-          <span className="field-label-inline">Méthode d'exposition :</span>
-          <button
-            type="button"
-            className={tirage.methodeExposition === 'bandeTest' ? 'chip chip-active' : 'chip'}
-            onClick={() => updateField('methodeExposition', 'bandeTest' as MethodeExposition)}
-          >
-            Bande test
-          </button>
-          <button
-            type="button"
-            className={tirage.methodeExposition === 'zoneMaster' ? 'chip chip-active' : 'chip'}
-            onClick={() => updateField('methodeExposition', 'zoneMaster' as MethodeExposition)}
-          >
-            Sonde ZoneMaster II
-          </button>
+          <ChemistryForm
+            value={tirage.chimie}
+            onChange={(v: Chimie) => updateField('chimie', v)}
+            showRincage={tirage.exposition.papierBaryte}
+            chimieStocks={chimieStocks}
+          />
         </div>
 
-        {tirage.methodeExposition === 'bandeTest' ? (
-          <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
-        ) : (
-          <ZoneMasterForm value={tirage.zoneMaster} onChange={handleZoneMasterChange} />
-        )}
+        <div className="phase">
+          <h2 className="phase-title">2. Détermination de l'exposition</h2>
+          <div className="stops-row">
+            <span className="field-label-inline">Méthode d'exposition :</span>
+            <button
+              type="button"
+              className={tirage.methodeExposition === 'bandeTest' ? 'chip chip-active' : 'chip'}
+              onClick={() => updateField('methodeExposition', 'bandeTest' as MethodeExposition)}
+            >
+              Bande test
+            </button>
+            <button
+              type="button"
+              className={tirage.methodeExposition === 'zoneMaster' ? 'chip chip-active' : 'chip'}
+              onClick={() => updateField('methodeExposition', 'zoneMaster' as MethodeExposition)}
+            >
+              Sonde ZoneMaster II
+            </button>
+          </div>
 
-        <section className="card">
-          <h2>Photo du tirage</h2>
-          <PhotoUpload
-            label="Photo du premier tirage"
-            value={tirage.printImageBlob}
-            onChange={(blob) => {
-              updateField('printImageBlob', blob)
-              setPhotoImage(tirage.photoId, blob)
-            }}
-          />
-        </section>
+          {tirage.methodeExposition === 'bandeTest' ? (
+            <BandeTestForm value={tirage.bandeTest} onChange={handleBandeTestChange} />
+          ) : (
+            <ZoneMasterForm value={tirage.zoneMaster} onChange={handleZoneMasterChange} />
+          )}
 
-        <SplitGradingForm
-          value={tirage.splitGrading}
-          onChange={(v: SplitGrading) => updateField('splitGrading', v)}
-          printImageBlob={tirage.printImageBlob}
-        />
+          <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+        </div>
 
-        <ToningForm value={tirage.virage} onChange={(v: Virage) => updateField('virage', v)} />
-
-        {tirage.printImageBlob && (
+        <div className="phase">
+          <h2 className="phase-title">3. Tirage &amp; finitions</h2>
           <section className="card">
-            <h2>Dodge &amp; Burn</h2>
-            <p className="muted">
-              Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn), avec la
-              valeur en stops.
-            </p>
-            <DodgeBurnCanvas
-              photoBlob={tirage.printImageBlob}
-              zones={tirage.dodgeBurnZones}
-              onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
-              tempsBase={tirage.exposition.tempsBase}
+            <h2>Photo du tirage</h2>
+            <PhotoUpload
+              label="Photo du premier tirage"
+              value={tirage.printImageBlob}
+              onChange={(blob) => {
+                updateField('printImageBlob', blob)
+                setPhotoImage(tirage.photoId, blob)
+              }}
             />
           </section>
-        )}
 
-        <section className="card">
-          <h2>Notes / résultat</h2>
-          <textarea
-            className="field-input"
-            rows={4}
-            value={tirage.notes}
-            onChange={(e) => updateField('notes', e.target.value)}
-            placeholder="Observations sur le résultat final, corrections à apporter au prochain tirage..."
+          <SplitGradingForm
+            value={tirage.splitGrading}
+            onChange={(v: SplitGrading) => updateField('splitGrading', v)}
+            printImageBlob={tirage.printImageBlob}
           />
-        </section>
+
+          <ToningForm value={tirage.virage} onChange={(v: Virage) => updateField('virage', v)} />
+
+          {tirage.printImageBlob && (
+            <section className="card">
+              <h2>Dodge &amp; Burn</h2>
+              <p className="muted">
+                Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn), avec
+                la valeur en stops.
+              </p>
+              <DodgeBurnCanvas
+                photoBlob={tirage.printImageBlob}
+                zones={tirage.dodgeBurnZones}
+                onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+                tempsBase={tirage.exposition.tempsBase}
+              />
+            </section>
+          )}
+        </div>
+
+        <div className="phase">
+          <h2 className="phase-title">4. Notes</h2>
+          <section className="card">
+            <textarea
+              className="field-input"
+              rows={4}
+              value={tirage.notes}
+              onChange={(e) => updateField('notes', e.target.value)}
+              placeholder="Observations sur le résultat final, corrections à apporter au prochain tirage..."
+            />
+          </section>
+        </div>
       </div>
     </div>
   )

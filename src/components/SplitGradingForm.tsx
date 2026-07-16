@@ -1,6 +1,7 @@
-import type { BandeTest, GradeTestStrip, SplitGrading } from '../types'
+import type { BandeTest, DodgeBurnZone, GradeTestStrip, SplitGrading } from '../types'
 import BandeTestForm from './BandeTestForm'
 import HighlightZoneMarker from './HighlightZoneMarker'
+import DodgeBurnCanvas from './DodgeBurnCanvas'
 
 interface SplitGradingFormProps {
   value: SplitGrading
@@ -56,6 +57,19 @@ export default function SplitGradingForm({ value, onChange, printImageBlob }: Sp
               onChange={(bandeTest, selectedTime) => handleBandeTestChange('grade00', bandeTest, selectedTime)}
             />
             {value.grade00.tempsChoisi && <p className="muted">Temps retenu : {value.grade00.tempsChoisi} s</p>}
+            {printImageBlob && (
+              <>
+                <h4>Dodge &amp; Burn — grade doux</h4>
+                <DodgeBurnCanvas
+                  photoBlob={printImageBlob}
+                  zones={value.grade00.dodgeBurnZones}
+                  onZonesChange={(zones: DodgeBurnZone[]) =>
+                    updateGradeStrip('grade00', { ...value.grade00, dodgeBurnZones: zones })
+                  }
+                  tempsBase={value.grade00.tempsChoisi}
+                />
+              </>
+            )}
           </div>
 
           <div className="split-grading-block">
@@ -75,6 +89,19 @@ export default function SplitGradingForm({ value, onChange, printImageBlob }: Sp
               onChange={(bandeTest, selectedTime) => handleBandeTestChange('gradeDur', bandeTest, selectedTime)}
             />
             {value.gradeDur.tempsChoisi && <p className="muted">Temps retenu : {value.gradeDur.tempsChoisi} s</p>}
+            {printImageBlob && (
+              <>
+                <h4>Dodge &amp; Burn — grade dur</h4>
+                <DodgeBurnCanvas
+                  photoBlob={printImageBlob}
+                  zones={value.gradeDur.dodgeBurnZones}
+                  onZonesChange={(zones: DodgeBurnZone[]) =>
+                    updateGradeStrip('gradeDur', { ...value.gradeDur, dodgeBurnZones: zones })
+                  }
+                  tempsBase={value.gradeDur.tempsChoisi}
+                />
+              </>
+            )}
           </div>
 
           <div className="split-grading-block">

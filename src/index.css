@@ -134,6 +134,29 @@ p {
   user-select: none;
 }
 
+.tirage-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.phase {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.phase-title {
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 8px;
+  margin: 4px 0 0;
+}
+
 .save-status {
   min-width: 100px;
   text-align: right;
