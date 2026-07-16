@@ -21,6 +21,7 @@ import PhotoUpload from '../components/PhotoUpload'
 import SplitGradingForm from '../components/SplitGradingForm'
 import ToningForm from '../components/ToningForm'
 import DodgeBurnCanvas from '../components/DodgeBurnCanvas'
+import { exportTirageToPdf } from '../utils/exportTirage'
 
 interface TirageDetailPageProps {
   tirageId: string
@@ -35,6 +36,7 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
+  const [exporting, setExporting] = useState(false)
   const saveTimeout = useRef<number | null>(null)
   const skipNextSave = useRef(true)
 
@@ -103,6 +105,16 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
     onBack()
   }
 
+  async function handleExport() {
+    if (!tirage) return
+    setExporting(true)
+    try {
+      await exportTirageToPdf(tirage)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) return <p className="muted">Chargement…</p>
   if (!tirage) return <p className="muted">Tirage introuvable.</p>
 
@@ -122,6 +134,9 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               Verrouiller
             </button>
           )}
+          <button className="btn-link" onClick={handleExport} disabled={exporting}>
+            {exporting ? 'Génération…' : 'Exporter (PDF)'}
+          </button>
           <button className="btn-link" onClick={handleDelete}>
             🗑 Supprimer
           </button>

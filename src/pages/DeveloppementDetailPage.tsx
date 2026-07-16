@@ -7,6 +7,7 @@ import SelectOrCustom from '../components/SelectOrCustom'
 import PhotoUpload from '../components/PhotoUpload'
 import { FORMAT_PRESETS } from '../utils/formats'
 import { FILM_STOCK_PRESETS } from '../utils/presets'
+import { exportDeveloppementCsv } from '../utils/exportDeveloppement'
 
 interface DeveloppementDetailPageProps {
   developpementId: string
@@ -86,6 +87,9 @@ export default function DeveloppementDetailPage({
               Verrouiller
             </button>
           )}
+          <button className="btn-link" onClick={() => exportDeveloppementCsv(developpement)}>
+            Exporter (CSV)
+          </button>
           <button className="btn-link" onClick={handleDelete}>
             🗑 Supprimer
           </button>
