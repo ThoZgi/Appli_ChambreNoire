@@ -1,6 +1,7 @@
 import type { ChemistryStep, ChimieStock, ChimieStockType, DeveloppementChimie } from '../types'
 import { FILM_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import { chimieStockOptionLabel } from '../utils/chimieCapacity'
+import { computeVinegarDilution, STOP_BATH_TARGET_PERCENT } from '../utils/stopBath'
 import SelectOrCustom from './SelectOrCustom'
 import AgitationPicker from './AgitationPicker'
 import NumberStepper from './NumberStepper'
@@ -61,13 +62,36 @@ function StepFields({
             className="field-input"
             value={step.dilution}
             onChange={(e) => set('dilution', e.target.value)}
-            placeholder="ex : 1+9 ou 8% (titrage vinaigre)"
+            placeholder="ex : 1+9"
           />
           <button type="button" className="btn-link field-unknown-btn" onClick={() => set('dilution', 'Inconnue')}>
             Inconnue
           </button>
         </div>
       </label>
+      {step.nom === 'Vinaigre' && (
+        <label className="field-label">
+          Degré du vinaigre stock (%)
+          <input
+            className="field-input"
+            value={step.degreVinaigre}
+            onChange={(e) => set('degreVinaigre', e.target.value)}
+            placeholder="ex : 8"
+          />
+          {computeVinegarDilution(step.degreVinaigre) && (
+            <span className="muted">
+              Pour un bain à {STOP_BATH_TARGET_PERCENT}% :{' '}
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => set('dilution', computeVinegarDilution(step.degreVinaigre)!)}
+              >
+                utiliser {computeVinegarDilution(step.degreVinaigre)}
+              </button>
+            </span>
+          )}
+        </label>
+      )}
       <label className="field-label">
         Temps
         <div className="field-with-unknown">

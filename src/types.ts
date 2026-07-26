@@ -15,6 +15,7 @@ export interface ChemistryStep {
   temps: string
   temperature: number
   chimieStockId: string | null
+  degreVinaigre: string
 }
 
 export interface Chimie {
@@ -176,7 +177,7 @@ export interface Tirage {
 }
 
 export function emptyChemistryStep(): ChemistryStep {
-  return { nom: '', dilution: '', temps: '', temperature: 20, chimieStockId: null }
+  return { nom: '', dilution: '', temps: '', temperature: 20, chimieStockId: null, degreVinaigre: '' }
 }
 
 export function emptyChimieStock(): Omit<ChimieStock, 'id' | 'createdAt'> {
