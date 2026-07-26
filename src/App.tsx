@@ -6,6 +6,7 @@ import DeveloppementListPage from './pages/DeveloppementListPage'
 import DeveloppementDetailPage from './pages/DeveloppementDetailPage'
 import ChimieStockListPage from './pages/ChimieStockListPage'
 import ChimieStockDetailPage from './pages/ChimieStockDetailPage'
+import ParametresPage from './pages/ParametresPage'
 
 type View =
   | { name: 'photos' }
@@ -15,10 +16,12 @@ type View =
   | { name: 'developpement'; developpementId: string; startUnlocked?: boolean }
   | { name: 'chimieStocks' }
   | { name: 'chimieStock'; chimieStockId: string; startUnlocked?: boolean }
+  | { name: 'parametres' }
 
-function section(view: View): 'photos' | 'developpements' | 'chimieStocks' {
+function section(view: View): 'photos' | 'developpements' | 'chimieStocks' | 'parametres' {
   if (view.name === 'developpements' || view.name === 'developpement') return 'developpements'
   if (view.name === 'chimieStocks' || view.name === 'chimieStock') return 'chimieStocks'
+  if (view.name === 'parametres') return 'parametres'
   return 'photos'
 }
 
@@ -63,6 +66,13 @@ export default function App() {
         >
           Stock chimie
         </button>
+        <button
+          type="button"
+          className={section(view) === 'parametres' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}
+          onClick={() => resetTo({ name: 'parametres' })}
+        >
+          Paramètres
+        </button>
       </nav>
 
       {view.name === 'photos' && <PhotoListPage onSelectPhoto={(id) => push({ name: 'photo', photoId: id })} />}
@@ -103,6 +113,8 @@ export default function App() {
       {view.name === 'chimieStock' && (
         <ChimieStockDetailPage chimieStockId={view.chimieStockId} startUnlocked={view.startUnlocked} onBack={pop} />
       )}
+
+      {view.name === 'parametres' && <ParametresPage />}
     </>
   )
 }

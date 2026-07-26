@@ -411,6 +411,17 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
 
               {tirage.modeRetouche === 'basique' && tirage.printImageBlob && (
                 <>
+                  <LocalizedBandeTestList
+                    photoBlob={tirage.printImageBlob}
+                    value={tirage.localizedBandeTests}
+                    onChange={(v) => updateField('localizedBandeTests', v)}
+                    baseTemps={tirage.exposition.tempsBase}
+                    title="Bandes tests localisées"
+                    onUseAsExposition={(temps) =>
+                      updateField('exposition', { ...tirage.exposition, tempsBase: temps })
+                    }
+                  />
+
                   <section className="card">
                     <h2>Dodge &amp; Burn</h2>
                     <p className="muted">
@@ -425,17 +436,6 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
                       defaultGrade={tirage.exposition.filtreContraste}
                     />
                   </section>
-
-                  <LocalizedBandeTestList
-                    photoBlob={tirage.printImageBlob}
-                    value={tirage.localizedBandeTests}
-                    onChange={(v) => updateField('localizedBandeTests', v)}
-                    baseTemps={tirage.exposition.tempsBase}
-                    title="Bandes tests localisées"
-                    onUseAsExposition={(temps) =>
-                      updateField('exposition', { ...tirage.exposition, tempsBase: temps })
-                    }
-                  />
                 </>
               )}
             </>

@@ -317,6 +317,42 @@ export async function deleteChimieStock(id: string): Promise<void> {
   await db.delete('chimieStocks', id)
 }
 
+export interface BackupData {
+  version: number
+  exportedAt: number
+  photos: Photo[]
+  tirages: Tirage[]
+  developpements: Developpement[]
+  chimieStocks: ChimieStock[]
+}
+
+export async function exportAllData(): Promise<BackupData> {
+  const db = await getDB()
+  const [photos, tirages, developpements, chimieStocks] = await Promise.all([
+    db.getAll('photos'),
+    db.getAll('tirages'),
+    db.getAll('developpements'),
+    db.getAll('chimieStocks'),
+  ])
+  return { version: 3, exportedAt: Date.now(), photos, tirages, developpements, chimieStocks }
+}
+
+export async function restoreAllData(data: BackupData): Promise<void> {
+  const db = await getDB()
+  const tx = db.transaction(['photos', 'tirages', 'developpements', 'chimieStocks'], 'readwrite')
+  await Promise.all([
+    tx.objectStore('photos').clear(),
+    tx.objectStore('tirages').clear(),
+    tx.objectStore('developpements').clear(),
+    tx.objectStore('chimieStocks').clear(),
+  ])
+  for (const photo of data.photos) await tx.objectStore('photos').put(photo)
+  for (const tirage of data.tirages) await tx.objectStore('tirages').put(tirage)
+  for (const developpement of data.developpements) await tx.objectStore('developpements').put(developpement)
+  for (const stock of data.chimieStocks) await tx.objectStore('chimieStocks').put(stock)
+  await tx.done
+}
+
 export async function countChimieStockUsages(stockId: string): Promise<ChimieStockUsage> {
   const db = await getDB()
   const [developpements, tirages] = await Promise.all([db.getAll('developpements'), db.getAll('tirages')])
