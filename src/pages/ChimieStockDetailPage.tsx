@@ -10,6 +10,7 @@ import {
   getCapacity,
   summarizeFilmUsage,
 } from '../utils/chimieCapacity'
+import { computeDilutionVolumes, parseDilutionRatio } from '../utils/dilution'
 import SelectOrCustom from '../components/SelectOrCustom'
 
 const TYPE_LABELS: Record<ChimieStockType, string> = {
@@ -38,6 +39,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
+  const [volumeMl, setVolumeMl] = useState('')
   const saveTimeout = useRef<number | null>(null)
   const skipNextSave = useRef(true)
 
@@ -85,6 +87,7 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
   if (!stock) return <p className="muted">Bidon introuvable.</p>
 
   const health = usage ? computeStockHealth(stock, usage) : 'ok'
+  const dilutionVolumes = computeDilutionVolumes(stock.concentration, parseFloat(volumeMl))
 
   return (
     <div className="page">
@@ -164,6 +167,25 @@ export default function ChimieStockDetailPage({ chimieStockId, startUnlocked, on
                 onChange={(e) => updateField('concentration', e.target.value)}
                 placeholder="ex : Stock (non dilué)"
               />
+              {parseDilutionRatio(stock.concentration) && (
+                <div className="dilution-calc">
+                  <span className="muted">Volume à préparer (mL)</span>
+                  <input
+                    className="field-input"
+                    type="number"
+                    min={0}
+                    value={volumeMl}
+                    onChange={(e) => setVolumeMl(e.target.value)}
+                    placeholder="ex : 500"
+                  />
+                  {dilutionVolumes && (
+                    <span className="dilution-calc-result">
+                      {dilutionVolumes.concentrateMl.toFixed(0)} mL concentré + {dilutionVolumes.waterMl.toFixed(0)} mL
+                      eau
+                    </span>
+                  )}
+                </div>
+              )}
             </label>
             <label className="field-label">
               Date de mise en service

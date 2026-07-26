@@ -1200,3 +1200,22 @@ button {
   white-space: nowrap;
   padding: 4px 0;
 }
+
+.dilution-calc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.dilution-calc input {
+  width: 90px;
+  flex: 0 0 auto;
+}
+
+.dilution-calc-result {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+}

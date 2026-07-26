@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import type { ChemistryStep, ChimieStock, ChimieStockType, DeveloppementChimie } from '../types'
 import { FILM_DEVELOPER_PRESETS, STOP_BATH_PRESETS, FIXER_PRESETS, RINSE_PRESETS } from '../utils/presets'
 import { chimieStockOptionLabel } from '../utils/chimieCapacity'
 import { computeVinegarDilution, STOP_BATH_TARGET_PERCENT } from '../utils/stopBath'
+import { computeDilutionVolumes, parseDilutionRatio } from '../utils/dilution'
 import SelectOrCustom from './SelectOrCustom'
 import AgitationPicker from './AgitationPicker'
 import NumberStepper from './NumberStepper'
@@ -42,6 +44,9 @@ function StepFields({
     onChange({ ...step, [key]: v })
   }
 
+  const [volumeMl, setVolumeMl] = useState('')
+  const dilutionVolumes = computeDilutionVolumes(step.dilution, parseFloat(volumeMl))
+
   const availableStocks = stockType ? chimieStocks.filter((s) => s.type === stockType) : []
 
   return (
@@ -68,6 +73,24 @@ function StepFields({
             Inconnue
           </button>
         </div>
+        {parseDilutionRatio(step.dilution) && (
+          <div className="dilution-calc">
+            <span className="muted">Volume à préparer (mL)</span>
+            <input
+              className="field-input"
+              type="number"
+              min={0}
+              value={volumeMl}
+              onChange={(e) => setVolumeMl(e.target.value)}
+              placeholder="ex : 500"
+            />
+            {dilutionVolumes && (
+              <span className="dilution-calc-result">
+                {dilutionVolumes.concentrateMl.toFixed(0)} mL concentré + {dilutionVolumes.waterMl.toFixed(0)} mL eau
+              </span>
+            )}
+          </div>
+        )}
       </label>
       {step.nom === 'Vinaigre' && (
         <label className="field-label">
@@ -119,7 +142,15 @@ function StepFields({
           <select
             className="field-input"
             value={step.chimieStockId ?? ''}
-            onChange={(e) => set('chimieStockId', e.target.value || null)}
+            onChange={(e) => {
+              const stockId = e.target.value || null
+              const selectedStock = availableStocks.find((s) => s.id === stockId)
+              onChange({
+                ...step,
+                chimieStockId: stockId,
+                ...(selectedStock ? { nom: selectedStock.nom, dilution: selectedStock.concentration } : {}),
+              })
+            }}
           >
             <option value="">Aucun</option>
             {availableStocks.map((s) => (
