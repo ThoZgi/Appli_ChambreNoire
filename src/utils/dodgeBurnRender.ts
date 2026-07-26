@@ -11,16 +11,21 @@ function formatSeconds(seconds: number): string {
   return `${Math.round(seconds)} s`
 }
 
+function formatSecondsPrecise(seconds: number): string {
+  return `${seconds.toFixed(2)} s`
+}
+
 export function baseExpositionLabel(tempsBase: string, grade?: string): string {
   const base = parseFloat(tempsBase)
-  const secondsText = tempsBase && !Number.isNaN(base) ? formatSeconds(base) : 'non définie'
+  const secondsText = tempsBase && !Number.isNaN(base) ? formatSecondsPrecise(base) : 'non définie'
   return grade ? `Exposition grade ${grade} : ${secondsText}` : `Exposition générale : ${secondsText}`
 }
 
 export function zoneActionLabel(zone: DodgeBurnZone, tempsBase: string, index: number, passGrade?: string): string {
   const seconds = computeZoneSeconds(tempsBase, zone.stops)
   const zoneName = zone.label || `zone ${index + 1}`
-  const amount = seconds !== null ? formatSeconds(seconds) : `${formatStops(zone.stops)} stop (temps à définir)`
+  const formatAmount = zone.type === 'dodge' ? formatSeconds : formatSecondsPrecise
+  const amount = seconds !== null ? formatAmount(seconds) : `${formatStops(zone.stops)} stop (temps à définir)`
   const gradeSuffix = zone.grade && zone.grade !== passGrade ? ` (grade ${zone.grade})` : ''
   if (zone.type === 'dodge') {
     const passages =

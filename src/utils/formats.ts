@@ -29,6 +29,8 @@ export const APERTURE_PRESETS = ['f/2.8', 'f/4', 'f/5.6', 'f/8', 'f/11', 'f/16',
 
 export const FILTER_GRADE_PRESETS = ['00', '0', '0.5', '1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5']
 
+export const ND_FILTER_PRESETS = ['ND 1 stop', 'ND 2 stops', 'ND 3 stops', 'ND 4 stops']
+
 export const SHUTTER_SPEED_PRESETS = [
   '1/1000',
   '1/500',

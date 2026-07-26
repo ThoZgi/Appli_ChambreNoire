@@ -33,7 +33,7 @@ export default function SplitGradingForm({ value, onChange, printImageBlob, base
             photoBlob={printImageBlob}
             value={strip.localizedBandeTests}
             onChange={(tests) => updateLocalizedTests(key, tests)}
-            baseTemps={baseTemps}
+            baseTemps={strip.tempsExposition || baseTemps}
             title={`Bandes tests localisées — ${label}`}
             defaultGrade={strip.grade}
             onUseAsExposition={(temps, grade) =>

@@ -976,6 +976,27 @@ button {
   box-shadow: 0 0 0 2px #ff9800;
 }
 
+.localized-test-marker-used {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px #4caf50, 0 0 0 4px rgba(0, 0, 0, 0.4);
+}
+
+.localized-test-marker-used::after {
+  content: '✓';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4caf50;
+  color: #fff;
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  border: 1px solid #fff;
+}
+
 .localized-test-panel {
   flex: 0 0 220px;
   min-width: 200px;

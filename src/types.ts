@@ -73,6 +73,7 @@ export interface LocalizedBandeTest {
   label: string
   bandeTest: BandeTest
   grade: string
+  usedAsExposition: boolean
 }
 
 export interface GradeTestStrip {
@@ -234,6 +235,7 @@ export function emptyLocalizedBandeTest(tempsDepart: string, grade = ''): Locali
     label: '',
     bandeTest: { ...emptyBandeTest(), tempsDepart },
     grade,
+    usedAsExposition: false,
   }
 }
 

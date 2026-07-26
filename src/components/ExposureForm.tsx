@@ -1,5 +1,5 @@
 import type { Exposition } from '../types'
-import { APERTURE_PRESETS, FILTER_GRADE_PRESETS } from '../utils/formats'
+import { APERTURE_PRESETS, FILTER_GRADE_PRESETS, ND_FILTER_PRESETS } from '../utils/formats'
 import SelectOrCustom from './SelectOrCustom'
 
 interface ExposureFormProps {
@@ -45,11 +45,11 @@ export default function ExposureForm({ value, onChange }: ExposureFormProps) {
         </label>
         <label className="field-label">
           Filtre ND
-          <input
-            className="field-input"
+          <SelectOrCustom
             value={value.filtreND}
-            onChange={(e) => set('filtreND', e.target.value)}
-            placeholder="ex : ND 2 stops"
+            options={ND_FILTER_PRESETS}
+            onChange={(v) => set('filtreND', v)}
+            placeholder="ex : filtre ND personnalisé"
           />
         </label>
       </div>

@@ -91,7 +91,7 @@ function cleanChemistryStep(step: unknown): ChemistryStep {
 }
 
 function cleanLocalizedBandeTest(entry: LocalizedBandeTest): LocalizedBandeTest {
-  return { ...entry, grade: entry.grade ?? '' }
+  return { ...entry, grade: entry.grade ?? '', usedAsExposition: entry.usedAsExposition ?? false }
 }
 
 function cleanDodgeBurnZone(zone: DodgeBurnZone): DodgeBurnZone {

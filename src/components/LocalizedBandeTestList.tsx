@@ -120,6 +120,7 @@ export default function LocalizedBandeTestList({
     if (index === -1) return
     const time = computeStepTime(entry.bandeTest.tempsDepart, entry.bandeTest.incrementStops, index)
     onUseAsExposition(time.toFixed(2), entry.grade)
+    onChange(value.map((e) => ({ ...e, usedAsExposition: e.id === entry.id })))
   }
 
   const activeEntry = activeId ? value.find((e) => e.id === activeId) : undefined
@@ -154,13 +155,14 @@ export default function LocalizedBandeTestList({
                   <button
                     key={entry.id}
                     type="button"
-                    className={
-                      entry.id === activeId
-                        ? 'localized-test-marker localized-test-marker-active'
-                        : closeIds.has(entry.id)
-                          ? 'localized-test-marker localized-test-marker-warning'
-                          : 'localized-test-marker'
-                    }
+                    className={[
+                      'localized-test-marker',
+                      entry.id === activeId && 'localized-test-marker-active',
+                      entry.usedAsExposition && 'localized-test-marker-used',
+                      closeIds.has(entry.id) && 'localized-test-marker-warning',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                     style={{ left: `${entry.point.x * 100}%`, top: `${entry.point.y * 100}%` }}
                     onClick={(e) => {
                       e.stopPropagation()
