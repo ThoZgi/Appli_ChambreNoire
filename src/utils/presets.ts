@@ -10,6 +10,7 @@ export const FILM_STOCK_PRESETS = [
   'Kodak T-Max 400',
   'Fomapan 100',
   'Fomapan 400',
+  'Bergger Pancro 400',
 ]
 
 export const FILM_DEVELOPER_PRESETS = [
@@ -31,10 +32,11 @@ export const PAPER_DEVELOPER_PRESETS = [
   'Moersch Eco 2',
   'Tetenal Eukobrom',
   'Bergger Neutol WA',
+  'Bergger Neutral Print',
 ]
 
 export const STOP_BATH_PRESETS = ['Vinaigre', 'Ilford Ilfostop', 'Kodak Indicator Stop Bath', 'Eau (arrêt simple)']
 
-export const FIXER_PRESETS = ['Ilford Rapid Fixer', 'Ilford Hypam', 'Kodak Fixer']
+export const FIXER_PRESETS = ['Ilford Rapid Fixer', 'Ilford Hypam', 'Kodak Fixer', 'Bergger Berfix Neutral']
 
 export const RINSE_PRESETS = ['Eau', 'Agent mouillant (ex : Ilfotol)']
