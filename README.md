@@ -1,32 +1,39 @@
-# React + TypeScript + Vite
+# Labo photo / Carnet de Bord
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Carnet de bord numérique pour la photographie argentique : développement de films et tirage en chambre noire. Application 100% locale — aucune donnée n'est envoyée à un serveur, tout est stocké dans le navigateur (IndexedDB), avec une fonction de sauvegarde/restauration complète pour changer d'appareil sans rien perdre.
 
-Currently, two official plugins are available:
+## Fonctionnalités
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Suivi des développements de films (chimie, agitation, négatifs liés)
+- Suivi des tirages en chambre noire : matériel, papier, chimie, exposition (bande test ou sonde ZoneMaster)
+- Dessin des zones de dodge & burn directement sur la photo, avec séquence d'action calculée (temps réels, grade, ordre dodge → burn)
+- Split grading (grade doux / grade dur) en deux passes indépendantes
+- Suivi des stocks de chimie (capacité disponible, épuisement)
+- Calculateur de dilution pour bain d'arrêt au vinaigre (degré du stock → dilution pour un bain à 2%)
+- Export PDF d'un tirage (fiche complète, mise en page imprimable pour la chambre noire)
+- Sauvegarde et restauration complètes des données (JSON, changement d'appareil)
+- Installable en PWA et fonctionne hors ligne (utile en chambre noire, sans wifi)
 
-## React Compiler
+## Stack technique
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React + TypeScript + Vite, IndexedDB (via `idb`), `vite-plugin-pwa`. Déployé sur Netlify.
 
-## Expanding the Oxlint configuration
+## Développement
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Build
+
+```bash
+npm run build
+npm run preview   # prévisualiser le build de production
+```
+
+## Lint
+
+```bash
+npm run lint
+```
