@@ -1,5 +1,5 @@
 import type { BandeTest } from '../types'
-import { STOP_PRESETS } from '../utils/stops'
+import { STOP_PRESETS, computeStepTime, formatStops } from '../utils/stops'
 import { APERTURE_PRESETS } from '../utils/formats'
 import NumberStepper from './NumberStepper'
 import SelectOrCustom from './SelectOrCustom'
@@ -10,11 +10,6 @@ interface BandeTestFormProps {
   title?: string
   ouverture?: string
   onOuvertureChange?: (value: string) => void
-}
-
-function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
-  const base = parseFloat(tempsDepart) || 0
-  return base * Math.pow(2, index * incrementStops)
 }
 
 export default function BandeTestForm({
@@ -111,6 +106,7 @@ export default function BandeTestForm({
               className={step.selected ? 'teststrip-item teststrip-item-selected' : 'teststrip-item'}
             >
               <span className="teststrip-index">Palier {index + 1}</span>
+              <span className="teststrip-stops">+{formatStops(index * value.incrementStops)} stop</span>
               <span className="teststrip-time">{time.toFixed(2)} s</span>
               <input
                 className="field-input teststrip-note"

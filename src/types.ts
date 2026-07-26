@@ -48,6 +48,10 @@ export interface DodgeBurnZone {
   stops: number
   path: { x: number; y: number }[]
   brushSize: number
+  grade?: string
+  label: string
+  outil?: string
+  nombrePassages?: number
 }
 
 export interface BandeTestStep {
@@ -62,19 +66,24 @@ export interface BandeTest {
   steps: BandeTestStep[]
 }
 
+export interface LocalizedBandeTest {
+  id: string
+  point: { x: number; y: number } | null
+  label: string
+  bandeTest: BandeTest
+  grade: string
+}
+
 export interface GradeTestStrip {
   grade: string
-  bandeTest: BandeTest
-  tempsChoisi: string
+  localizedBandeTests: LocalizedBandeTest[]
+  tempsExposition: string
   dodgeBurnZones: DodgeBurnZone[]
 }
 
 export interface SplitGrading {
-  enabled: boolean
   grade00: GradeTestStrip
   gradeDur: GradeTestStrip
-  zoneHautesLumieres: { x: number; y: number } | null
-  noteZone: string
 }
 
 export interface Agitation {
@@ -133,17 +142,11 @@ export interface Developpement {
   notes: string
 }
 
-export interface Virage {
-  enabled: boolean
-  produit: string
-  dilution: string
-  temps: string
-  notes: string
-}
-
 export type TirageStatut = 'en_cours' | 'termine'
 
 export type MethodeExposition = 'bandeTest' | 'zoneMaster'
+
+export type ModeRetouche = 'basique' | 'splitGrading'
 
 export interface ZoneMasterReading {
   lectureHautesLumieres: string
@@ -162,11 +165,12 @@ export interface Tirage {
   chimie: Chimie
   printImageBlob: Blob | null
   dodgeBurnZones: DodgeBurnZone[]
+  localizedBandeTests: LocalizedBandeTest[]
   methodeExposition: MethodeExposition
   bandeTest: BandeTest
   zoneMaster: ZoneMasterReading
+  modeRetouche: ModeRetouche
   splitGrading: SplitGrading
-  virage: Virage
   statut: TirageStatut
   notes: string
 }
@@ -206,10 +210,6 @@ export function emptyChimie(): Chimie {
   }
 }
 
-export function emptyVirage(): Virage {
-  return { enabled: false, produit: '', dilution: '', temps: '', notes: '' }
-}
-
 export function emptyBandeTest(): BandeTest {
   return {
     tempsDepart: '',
@@ -223,16 +223,23 @@ export function emptyZoneMasterReading(): ZoneMasterReading {
 }
 
 export function emptyGradeTestStrip(grade: string): GradeTestStrip {
-  return { grade, bandeTest: emptyBandeTest(), tempsChoisi: '', dodgeBurnZones: [] }
+  return { grade, localizedBandeTests: [], tempsExposition: '', dodgeBurnZones: [] }
+}
+
+export function emptyLocalizedBandeTest(tempsDepart: string, grade = ''): LocalizedBandeTest {
+  return {
+    id: crypto.randomUUID(),
+    point: null,
+    label: '',
+    bandeTest: { ...emptyBandeTest(), tempsDepart },
+    grade,
+  }
 }
 
 export function emptySplitGrading(): SplitGrading {
   return {
-    enabled: false,
     grade00: emptyGradeTestStrip('00'),
     gradeDur: emptyGradeTestStrip('5'),
-    zoneHautesLumieres: null,
-    noteZone: '',
   }
 }
 

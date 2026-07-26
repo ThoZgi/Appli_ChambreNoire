@@ -2,14 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import type { DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
 import { STOP_PRESETS } from '../utils/stops'
-import { renderZonesOnCanvas, zoneLabel } from '../utils/dodgeBurnRender'
+import { FILTER_GRADE_PRESETS } from '../utils/formats'
+import { baseExpositionLabel, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
 import NumberStepper from './NumberStepper'
+import SelectOrCustom from './SelectOrCustom'
 
 interface DodgeBurnCanvasProps {
   photoBlob: Blob
   zones: DodgeBurnZone[]
   onZonesChange: (zones: DodgeBurnZone[]) => void
   tempsBase: string
+  gradeEnabled?: boolean
+  defaultGrade?: string
 }
 
 function relativePoint(
@@ -23,7 +27,14 @@ function relativePoint(
   }
 }
 
-export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, tempsBase }: DodgeBurnCanvasProps) {
+export default function DodgeBurnCanvas({
+  photoBlob,
+  zones,
+  onZonesChange,
+  tempsBase,
+  gradeEnabled,
+  defaultGrade,
+}: DodgeBurnCanvasProps) {
   const imageUrl = useObjectUrl(photoBlob)
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -32,7 +43,9 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, temps
   const [mode, setMode] = useState<DodgeBurnType>('dodge')
   const [stops, setStops] = useState(0.25)
   const [brushSize, setBrushSize] = useState(0.03)
+  const [grade, setGrade] = useState(defaultGrade ?? '')
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[] | null>(null)
+  const [activeZoneId, setActiveZoneId] = useState<string | null>(null)
 
   function draw() {
     const canvas = canvasRef.current
@@ -43,13 +56,13 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, temps
 
     const allStrokes = currentPath ? [...zones, { id: '_current', type: mode, stops, path: currentPath, brushSize }] : zones
 
-    renderZonesOnCanvas(ctx, canvas, allStrokes)
+    renderZonesOnCanvas(ctx, canvas, allStrokes, activeZoneId)
   }
 
   useEffect(() => {
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zones, currentPath, mode, stops, brushSize])
+  }, [zones, currentPath, mode, stops, brushSize, activeZoneId])
 
   useEffect(() => {
     function resize() {
@@ -96,15 +109,147 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, temps
       stops,
       path,
       brushSize,
+      grade: gradeEnabled && grade ? grade : undefined,
+      label: '',
     }
     onZonesChange([...zones, zone])
   }
 
   function handleDeleteZone(id: string) {
     onZonesChange(zones.filter((z) => z.id !== id))
+    if (activeZoneId === id) setActiveZoneId(null)
+  }
+
+  function updateZone(id: string, patch: Partial<DodgeBurnZone>) {
+    onZonesChange(zones.map((z) => (z.id === id ? { ...z, ...patch } : z)))
+  }
+
+  function moveZone(id: string, direction: 'up' | 'down') {
+    const zone = zones.find((z) => z.id === id)
+    if (!zone) return
+    const sameType = zones.filter((z) => z.type === zone.type)
+    const idx = sameType.findIndex((z) => z.id === id)
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= sameType.length) return
+    const swapWith = sameType[swapIdx]
+    const fullA = zones.findIndex((z) => z.id === zone.id)
+    const fullB = zones.findIndex((z) => z.id === swapWith.id)
+    const next = [...zones]
+    ;[next[fullA], next[fullB]] = [next[fullB], next[fullA]]
+    onZonesChange(next)
+  }
+
+  function toggleActive(id: string) {
+    setActiveZoneId((prev) => (prev === id ? null : id))
   }
 
   if (!imageUrl) return null
+
+  const dodges = zones.filter((z) => z.type === 'dodge')
+  const burns = zones.filter((z) => z.type === 'burn')
+
+  function renderGroup(groupZones: DodgeBurnZone[], groupLabel: string) {
+    if (groupZones.length === 0) return null
+    return (
+      <>
+        <li className="zone-group-title">{groupLabel}</li>
+        {groupZones.map((zone, index) => {
+          const isFirst = index === 0
+          const isLast = index === groupZones.length - 1
+          return (
+            <li key={zone.id}>
+              <div
+                className={zone.id === activeZoneId ? 'zone-list-item zone-list-item-active' : 'zone-list-item'}
+                onClick={() => toggleActive(zone.id)}
+              >
+                <span className={zone.type === 'dodge' ? 'zone-tag zone-tag-dodge' : 'zone-tag zone-tag-burn'}>
+                  {zoneActionLabel(zone, tempsBase, index, defaultGrade)}
+                </span>
+                <div className="zone-move-buttons">
+                  <button
+                    type="button"
+                    className="zone-move-btn"
+                    disabled={isFirst}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      moveZone(zone.id, 'up')
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className="zone-move-btn"
+                    disabled={isLast}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      moveZone(zone.id, 'down')
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="btn-link"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteZone(zone.id)
+                  }}
+                >
+                  Supprimer
+                </button>
+              </div>
+              {zone.id === activeZoneId && (
+                <div className="zone-detail">
+                  <label className="field-label">
+                    Nom de la zone
+                    <input
+                      className="field-input"
+                      value={zone.label}
+                      onChange={(e) => updateZone(zone.id, { label: e.target.value })}
+                      placeholder={`Zone ${index + 1}`}
+                    />
+                  </label>
+                  <label className="field-label">
+                    Outil
+                    <input
+                      className="field-input"
+                      value={zone.outil ?? ''}
+                      onChange={(e) => updateZone(zone.id, { outil: e.target.value })}
+                      placeholder="Outil (optionnel)"
+                    />
+                  </label>
+                  {zone.type === 'dodge' && (
+                    <label className="field-label">
+                      Nombre de passages
+                      <NumberStepper
+                        min={0}
+                        step={1}
+                        value={zone.nombrePassages ?? 0}
+                        onChange={(v) => updateZone(zone.id, { nombrePassages: v || undefined })}
+                      />
+                    </label>
+                  )}
+                  {gradeEnabled && (
+                    <label className="field-label">
+                      Grade
+                      <SelectOrCustom
+                        value={zone.grade ?? ''}
+                        options={FILTER_GRADE_PRESETS}
+                        onChange={(v) => updateZone(zone.id, { grade: v || undefined })}
+                        placeholder="grade"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </>
+    )
+  }
 
   return (
     <div className="dodge-burn">
@@ -125,6 +270,18 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, temps
             Burn (assombrir)
           </button>
         </div>
+
+        {gradeEnabled && (
+          <div className="stops-row">
+            <span className="field-label-inline">Grade :</span>
+            <SelectOrCustom
+              value={grade}
+              options={FILTER_GRADE_PRESETS}
+              onChange={setGrade}
+              placeholder="ex : grade personnalisé"
+            />
+          </div>
+        )}
 
         <div className="stops-row">
           <span className="field-label-inline">Valeur :</span>
@@ -167,20 +324,11 @@ export default function DodgeBurnCanvas({ photoBlob, zones, onZonesChange, temps
         />
       </div>
 
-      {zones.length > 0 && (
-        <ul className="zone-list">
-          {zones.map((zone) => (
-            <li key={zone.id} className="zone-list-item">
-              <span className={zone.type === 'dodge' ? 'zone-tag zone-tag-dodge' : 'zone-tag zone-tag-burn'}>
-                {zoneLabel(zone, tempsBase)}
-              </span>
-              <button type="button" className="btn-link" onClick={() => handleDeleteZone(zone.id)}>
-                Supprimer
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="zone-list">
+        <li className="zone-list-summary">{baseExpositionLabel(tempsBase, defaultGrade)}</li>
+        {renderGroup(dodges, 'Dodge')}
+        {renderGroup(burns, 'Burn')}
+      </ul>
     </div>
   )
 }

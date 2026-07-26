@@ -8,11 +8,11 @@ import type {
   DodgeBurnZone,
   Exposition,
   MethodeExposition,
+  ModeRetouche,
   NegatifRef,
   SplitGrading,
   Tirage,
   TirageStatut,
-  Virage,
   ZoneMasterReading,
 } from '../types'
 import MaterielPapierForm from '../components/MaterielPapierForm'
@@ -22,8 +22,8 @@ import ZoneMasterForm from '../components/ZoneMasterForm'
 import ChemistryForm from '../components/ChemistryForm'
 import PhotoUpload from '../components/PhotoUpload'
 import SplitGradingForm from '../components/SplitGradingForm'
-import ToningForm from '../components/ToningForm'
 import DodgeBurnCanvas from '../components/DodgeBurnCanvas'
+import LocalizedBandeTestList from '../components/LocalizedBandeTestList'
 import { exportTirageToPdf } from '../utils/exportTirage'
 import { APERTURE_PRESETS, pushPullLabel } from '../utils/formats'
 import SelectOrCustom from '../components/SelectOrCustom'
@@ -355,6 +355,18 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               )}
 
               <ExposureForm value={tirage.exposition} onChange={(v: Exposition) => updateField('exposition', v)} />
+
+              <section className="card">
+                <h2>Photo du tirage</h2>
+                <PhotoUpload
+                  label="Photo du premier tirage"
+                  value={tirage.printImageBlob}
+                  onChange={(blob) => {
+                    updateField('printImageBlob', blob)
+                    setPhotoImage(tirage.photoId, blob)
+                  }}
+                />
+              </section>
             </>
           )}
         </div>
@@ -370,40 +382,61 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
           </button>
           {openPhases.tirage && (
             <>
-              <section className="card">
-                <h2>Photo du tirage</h2>
-                <PhotoUpload
-                  label="Photo du premier tirage"
-                  value={tirage.printImageBlob}
-                  onChange={(blob) => {
-                    updateField('printImageBlob', blob)
-                    setPhotoImage(tirage.photoId, blob)
-                  }}
+              <div className="stops-row">
+                <span className="field-label-inline">Mode de retouche :</span>
+                <button
+                  type="button"
+                  className={tirage.modeRetouche === 'basique' ? 'chip chip-active' : 'chip'}
+                  onClick={() => updateField('modeRetouche', 'basique' as ModeRetouche)}
+                >
+                  Dodge &amp; Burn
+                </button>
+                <button
+                  type="button"
+                  className={tirage.modeRetouche === 'splitGrading' ? 'chip chip-active' : 'chip'}
+                  onClick={() => updateField('modeRetouche', 'splitGrading' as ModeRetouche)}
+                >
+                  Split grading
+                </button>
+              </div>
+
+              {tirage.modeRetouche === 'splitGrading' && (
+                <SplitGradingForm
+                  value={tirage.splitGrading}
+                  onChange={(v: SplitGrading) => updateField('splitGrading', v)}
+                  printImageBlob={tirage.printImageBlob}
+                  baseTemps={tirage.exposition.tempsBase}
                 />
-              </section>
+              )}
 
-              <SplitGradingForm
-                value={tirage.splitGrading}
-                onChange={(v: SplitGrading) => updateField('splitGrading', v)}
-                printImageBlob={tirage.printImageBlob}
-              />
+              {tirage.modeRetouche === 'basique' && tirage.printImageBlob && (
+                <>
+                  <section className="card">
+                    <h2>Dodge &amp; Burn</h2>
+                    <p className="muted">
+                      Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn),
+                      avec la valeur en stops.
+                    </p>
+                    <DodgeBurnCanvas
+                      photoBlob={tirage.printImageBlob}
+                      zones={tirage.dodgeBurnZones}
+                      onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+                      tempsBase={tirage.exposition.tempsBase}
+                      defaultGrade={tirage.exposition.filtreContraste}
+                    />
+                  </section>
 
-              <ToningForm value={tirage.virage} onChange={(v: Virage) => updateField('virage', v)} />
-
-              {tirage.printImageBlob && (
-                <section className="card">
-                  <h2>Dodge &amp; Burn</h2>
-                  <p className="muted">
-                    Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn),
-                    avec la valeur en stops.
-                  </p>
-                  <DodgeBurnCanvas
+                  <LocalizedBandeTestList
                     photoBlob={tirage.printImageBlob}
-                    zones={tirage.dodgeBurnZones}
-                    onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
-                    tempsBase={tirage.exposition.tempsBase}
+                    value={tirage.localizedBandeTests}
+                    onChange={(v) => updateField('localizedBandeTests', v)}
+                    baseTemps={tirage.exposition.tempsBase}
+                    title="Bandes tests localisées"
+                    onUseAsExposition={(temps) =>
+                      updateField('exposition', { ...tirage.exposition, tempsBase: temps })
+                    }
                   />
-                </section>
+                </>
               )}
             </>
           )}

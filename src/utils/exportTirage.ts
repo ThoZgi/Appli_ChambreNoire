@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf'
-import type { ChimieStock, Tirage } from '../types'
-import { zoneLabel } from './dodgeBurnRender'
+import type { ChimieStock, DodgeBurnZone, Tirage } from '../types'
+import { baseExpositionLabel, zoneActionLabel } from './dodgeBurnRender'
 import { renderAnnotatedPrintImage } from './annotatedPrintImage'
 import { slugify } from './slug'
 
@@ -42,6 +42,16 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
       }
     }
     y += SECTION_GAP
+  }
+
+  function addDodgeBurnSection(title: string, zones: DodgeBurnZone[], zoneTempsBase: string, grade: string | undefined) {
+    if (zones.length === 0 && !zoneTempsBase) return
+    const dodges = zones.filter((z) => z.type === 'dodge')
+    const burns = zones.filter((z) => z.type === 'burn')
+    const rows: [string, string][] = [['Exposition de base', baseExpositionLabel(zoneTempsBase, grade)]]
+    dodges.forEach((z, i) => rows.push([`Dodge ${i + 1}`, zoneActionLabel(z, zoneTempsBase, i, grade)]))
+    burns.forEach((z, i) => rows.push([`Burn ${i + 1}`, zoneActionLabel(z, zoneTempsBase, i, grade)]))
+    addSection(title, rows)
   }
 
   doc.setFont('helvetica', 'bold')
@@ -113,35 +123,20 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
     ])
   }
 
-  if (tirage.splitGrading.enabled) {
+  if (tirage.modeRetouche === 'splitGrading') {
     const sg = tirage.splitGrading
     addSection('Split grading', [
-      [`Grade ${sg.grade00.grade} — temps choisi`, sg.grade00.tempsChoisi],
-      [`Grade ${sg.gradeDur.grade} — temps choisi`, sg.gradeDur.tempsChoisi],
-      [
-        'Zone hautes lumières',
-        sg.zoneHautesLumieres
-          ? `${Math.round(sg.zoneHautesLumieres.x * 100)}%, ${Math.round(sg.zoneHautesLumieres.y * 100)}%`
-          : '',
-      ],
-      ['Note', sg.noteZone],
+      ['Grade doux', sg.grade00.grade],
+      ["Grade doux — temps d'exposition générale", sg.grade00.tempsExposition],
+      ['Grade dur', sg.gradeDur.grade],
+      ["Grade dur — temps d'exposition générale", sg.gradeDur.tempsExposition],
     ])
+    addDodgeBurnSection('Dodge & Burn — grade doux', sg.grade00.dodgeBurnZones, sg.grade00.tempsExposition, sg.grade00.grade)
+    addDodgeBurnSection('Dodge & Burn — grade dur', sg.gradeDur.dodgeBurnZones, sg.gradeDur.tempsExposition, sg.gradeDur.grade)
   }
 
-  if (tirage.virage.enabled) {
-    addSection('Virage', [
-      ['Produit', tirage.virage.produit],
-      ['Dilution', tirage.virage.dilution],
-      ['Temps', tirage.virage.temps],
-      ['Notes', tirage.virage.notes],
-    ])
-  }
-
-  if (tirage.dodgeBurnZones.length > 0) {
-    addSection(
-      'Dodge & Burn',
-      tirage.dodgeBurnZones.map((zone, i) => [`Zone ${i + 1}`, zoneLabel(zone, exp.tempsBase)] as [string, string]),
-    )
+  if (tirage.modeRetouche === 'basique') {
+    addDodgeBurnSection('Dodge & Burn', tirage.dodgeBurnZones, exp.tempsBase, exp.filtreContraste || undefined)
   }
 
   if (tirage.notes) {
@@ -149,7 +144,11 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
   }
 
   if (tirage.printImageBlob) {
-    const { dataUrl, width, height } = await renderAnnotatedPrintImage(tirage.printImageBlob, tirage.dodgeBurnZones)
+    const allDodgeBurnZones =
+      tirage.modeRetouche === 'splitGrading'
+        ? [...tirage.splitGrading.grade00.dodgeBurnZones, ...tirage.splitGrading.gradeDur.dodgeBurnZones]
+        : tirage.dodgeBurnZones
+    const { dataUrl, width, height } = await renderAnnotatedPrintImage(tirage.printImageBlob, allDodgeBurnZones)
     const displayWidth = contentWidth
     const displayHeight = (height / width) * displayWidth
     ensureSpace(displayHeight + SECTION_GAP)

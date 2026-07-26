@@ -14,3 +14,8 @@ export function formatStops(stops: number): string {
   if (preset) return preset.label
   return Number.isInteger(stops) ? `${stops}` : stops.toFixed(2)
 }
+
+export function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
+  const base = parseFloat(tempsDepart) || 0
+  return base * Math.pow(2, index * incrementStops)
+}

@@ -6,7 +6,6 @@ import {
   emptyChimie,
   emptyExposition,
   emptySplitGrading,
-  emptyVirage,
   emptyZoneMasterReading,
 } from '../types'
 import BlobImage from '../components/BlobImage'
@@ -57,11 +56,12 @@ export default function PhotoDetailPage({
       chimie: emptyChimie(),
       printImageBlob: null,
       dodgeBurnZones: [],
+      localizedBandeTests: [],
       methodeExposition: 'bandeTest',
       bandeTest: emptyBandeTest(),
       zoneMaster: emptyZoneMasterReading(),
+      modeRetouche: 'basique',
       splitGrading: emptySplitGrading(),
-      virage: emptyVirage(),
       statut: 'en_cours',
       notes: '',
     })
@@ -123,6 +123,11 @@ export default function PhotoDetailPage({
       <div className="tirage-list">
         {tirages.map((tirage) => (
           <button key={tirage.id} className="tirage-card tirage-card-open" onClick={() => onSelectTirage(tirage.id)}>
+            <span
+              className={
+                tirage.statut === 'termine' ? 'status-badge status-badge-termine' : 'status-badge status-badge-en-cours'
+              }
+            />
             {tirage.printImageBlob && (
               <BlobImage blob={tirage.printImageBlob} alt={tirage.label} className="tirage-card-img" />
             )}

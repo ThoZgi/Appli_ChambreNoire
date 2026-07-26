@@ -7,13 +7,27 @@ export function computeZoneSeconds(tempsBase: string, stops: number): number | n
   return base * (Math.pow(2, stops) - 1)
 }
 
-export function zoneLabel(zone: DodgeBurnZone, tempsBase: string): string {
-  const typeLabel = zone.type === 'dodge' ? 'Dodge' : 'Burn'
-  const base = `${typeLabel} +${formatStops(zone.stops)} stop`
+function formatSeconds(seconds: number): string {
+  return `${Math.round(seconds)} s`
+}
+
+export function baseExpositionLabel(tempsBase: string, grade?: string): string {
+  const base = parseFloat(tempsBase)
+  const secondsText = tempsBase && !Number.isNaN(base) ? formatSeconds(base) : 'non définie'
+  return grade ? `Exposition grade ${grade} : ${secondsText}` : `Exposition générale : ${secondsText}`
+}
+
+export function zoneActionLabel(zone: DodgeBurnZone, tempsBase: string, index: number, passGrade?: string): string {
   const seconds = computeZoneSeconds(tempsBase, zone.stops)
-  if (seconds === null) return base
-  const action = zone.type === 'dodge' ? 'à retenir pendant l\'exposition de base' : 'à ajouter après l\'exposition de base'
-  return `${base} — ${seconds.toFixed(1)}s ${action}`
+  const zoneName = zone.label || `zone ${index + 1}`
+  const amount = seconds !== null ? formatSeconds(seconds) : `${formatStops(zone.stops)} stop (temps à définir)`
+  const gradeSuffix = zone.grade && zone.grade !== passGrade ? ` (grade ${zone.grade})` : ''
+  if (zone.type === 'dodge') {
+    const passages =
+      zone.nombrePassages && zone.nombrePassages > 1 ? `, réparties en ${zone.nombrePassages} passages` : ''
+    return `Retenir "${zoneName}" pendant ${amount}${passages}${gradeSuffix}`
+  }
+  return `Revenir sur "${zoneName}", relancer pour ${amount}${gradeSuffix}`
 }
 
 export function drawZoneLabel(
@@ -47,28 +61,42 @@ export function drawZoneLabel(
   ctx.fillText(label, x, y + 1)
 }
 
+function tracePath(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, path: { x: number; y: number }[]) {
+  ctx.beginPath()
+  const [first, ...rest] = path
+  ctx.moveTo(first.x * canvas.width, first.y * canvas.height)
+  if (rest.length === 0) {
+    ctx.lineTo(first.x * canvas.width + 0.01, first.y * canvas.height + 0.01)
+  }
+  for (const p of rest) {
+    ctx.lineTo(p.x * canvas.width, p.y * canvas.height)
+  }
+}
+
 export function renderZonesOnCanvas(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   zones: { id: string; type: DodgeBurnType; stops: number; path: { x: number; y: number }[]; brushSize: number }[],
+  activeId?: string | null,
 ) {
   for (const zone of zones) {
     if (zone.path.length < 1) continue
-    const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
-    const alpha = Math.min(0.75, 0.18 + zone.stops * 0.18)
-    ctx.strokeStyle = `rgba(${color}, ${alpha})`
-    ctx.lineWidth = zone.brushSize * canvas.width
+    const isActive = activeId != null && zone.id === activeId
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    ctx.beginPath()
-    const [first, ...rest] = zone.path
-    ctx.moveTo(first.x * canvas.width, first.y * canvas.height)
-    if (rest.length === 0) {
-      ctx.lineTo(first.x * canvas.width + 0.01, first.y * canvas.height + 0.01)
+
+    if (isActive) {
+      tracePath(ctx, canvas, zone.path)
+      ctx.strokeStyle = 'rgba(255, 235, 59, 0.35)'
+      ctx.lineWidth = zone.brushSize * canvas.width * 1.6
+      ctx.stroke()
     }
-    for (const p of rest) {
-      ctx.lineTo(p.x * canvas.width, p.y * canvas.height)
-    }
+
+    const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
+    const alpha = Math.min(0.75, 0.18 + zone.stops * 0.18)
+    tracePath(ctx, canvas, zone.path)
+    ctx.strokeStyle = `rgba(${color}, ${alpha})`
+    ctx.lineWidth = zone.brushSize * canvas.width
     ctx.stroke()
     drawZoneLabel(ctx, canvas, zone)
   }

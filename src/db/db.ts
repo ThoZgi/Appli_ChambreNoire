@@ -5,13 +5,12 @@ import {
   emptyBandeTest,
   emptyChimie,
   emptySplitGrading,
-  emptyVirage,
   emptyAgitation,
   emptyChemistryStep,
   emptyGradeTestStrip,
   emptyZoneMasterReading,
 } from '../types'
-import type { ChemistryStep, GradeTestStrip } from '../types'
+import type { ChemistryStep, DodgeBurnZone, GradeTestStrip, LocalizedBandeTest } from '../types'
 import type { ChimieStockUsage } from '../utils/chimieCapacity'
 
 interface ChambreNoireDB extends DBSchema {
@@ -91,8 +90,22 @@ function cleanChemistryStep(step: unknown): ChemistryStep {
   }
 }
 
+function cleanLocalizedBandeTest(entry: LocalizedBandeTest): LocalizedBandeTest {
+  return { ...entry, grade: entry.grade ?? '' }
+}
+
+function cleanDodgeBurnZone(zone: DodgeBurnZone): DodgeBurnZone {
+  return { ...zone, label: zone.label ?? '' }
+}
+
 function cleanGradeTestStrip(strip: GradeTestStrip): GradeTestStrip {
-  return { ...emptyGradeTestStrip(strip.grade), ...strip, dodgeBurnZones: strip.dodgeBurnZones ?? [] }
+  return {
+    ...emptyGradeTestStrip(strip.grade),
+    ...strip,
+    localizedBandeTests: (strip.localizedBandeTests ?? []).map(cleanLocalizedBandeTest),
+    dodgeBurnZones: (strip.dodgeBurnZones ?? []).map(cleanDodgeBurnZone),
+    tempsExposition: strip.tempsExposition ?? '',
+  }
 }
 
 function normalizeTirage(tirage: Tirage): Tirage {
@@ -112,13 +125,15 @@ function normalizeTirage(tirage: Tirage): Tirage {
     methodeExposition: tirage.methodeExposition ?? 'bandeTest',
     bandeTest: tirage.bandeTest ?? emptyBandeTest(),
     zoneMaster: tirage.zoneMaster ?? emptyZoneMasterReading(),
+    modeRetouche: tirage.modeRetouche ?? 'basique',
     splitGrading: {
       ...splitGrading,
       grade00: cleanGradeTestStrip(splitGrading.grade00),
       gradeDur: cleanGradeTestStrip(splitGrading.gradeDur),
     },
-    virage: tirage.virage ?? emptyVirage(),
     statut: tirage.statut ?? 'en_cours',
+    localizedBandeTests: (tirage.localizedBandeTests ?? []).map(cleanLocalizedBandeTest),
+    dodgeBurnZones: (tirage.dodgeBurnZones ?? []).map(cleanDodgeBurnZone),
   }
 }
 
