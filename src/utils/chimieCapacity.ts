@@ -32,6 +32,7 @@ export const PAPER_DEVELOPER_CAPACITY: Record<string, number> = {
   'Moersch Eco 2': 40,
   'Tetenal Eukobrom': 40,
   'Bergger Neutol WA': 40,
+  'Bergger Neutral Print': 40,
 }
 export const DEFAULT_PAPER_DEVELOPER_CAPACITY = 40
 
@@ -40,6 +41,7 @@ export const FIXER_CAPACITY_ROLLS: Record<string, number> = {
   'Ilford Rapid Fixer': 24,
   'Ilford Hypam': 24,
   'Kodak Fixer': 20,
+  'Bergger Berfix Neutral': 24,
 }
 export const DEFAULT_FIXER_CAPACITY_ROLLS = 20
 // Fixateur — capacité en feuilles 8x10 baryté-équivalentes par litre (générique)
