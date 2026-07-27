@@ -6,6 +6,8 @@ import DeveloppementListPage from './pages/DeveloppementListPage'
 import DeveloppementDetailPage from './pages/DeveloppementDetailPage'
 import ChimieStockListPage from './pages/ChimieStockListPage'
 import ChimieStockDetailPage from './pages/ChimieStockDetailPage'
+import CalibrationListPage from './pages/CalibrationListPage'
+import CalibrationDetailPage from './pages/CalibrationDetailPage'
 import ParametresPage from './pages/ParametresPage'
 
 type View =
@@ -16,11 +18,14 @@ type View =
   | { name: 'developpement'; developpementId: string; startUnlocked?: boolean }
   | { name: 'chimieStocks' }
   | { name: 'chimieStock'; chimieStockId: string; startUnlocked?: boolean }
+  | { name: 'calibrations' }
+  | { name: 'calibration'; calibrationId: string; startUnlocked?: boolean }
   | { name: 'parametres' }
 
-function section(view: View): 'photos' | 'developpements' | 'chimieStocks' | 'parametres' {
+function section(view: View): 'photos' | 'developpements' | 'chimieStocks' | 'calibrations' | 'parametres' {
   if (view.name === 'developpements' || view.name === 'developpement') return 'developpements'
   if (view.name === 'chimieStocks' || view.name === 'chimieStock') return 'chimieStocks'
+  if (view.name === 'calibrations' || view.name === 'calibration') return 'calibrations'
   if (view.name === 'parametres') return 'parametres'
   return 'photos'
 }
@@ -68,6 +73,13 @@ export default function App() {
         </button>
         <button
           type="button"
+          className={section(view) === 'calibrations' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}
+          onClick={() => resetTo({ name: 'calibrations' })}
+        >
+          Calibration
+        </button>
+        <button
+          type="button"
           className={section(view) === 'parametres' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}
           onClick={() => resetTo({ name: 'parametres' })}
         >
@@ -112,6 +124,20 @@ export default function App() {
 
       {view.name === 'chimieStock' && (
         <ChimieStockDetailPage chimieStockId={view.chimieStockId} startUnlocked={view.startUnlocked} onBack={pop} />
+      )}
+
+      {view.name === 'calibrations' && (
+        <CalibrationListPage
+          onSelectCalibration={(id, startUnlocked) => push({ name: 'calibration', calibrationId: id, startUnlocked })}
+        />
+      )}
+
+      {view.name === 'calibration' && (
+        <CalibrationDetailPage
+          calibrationId={view.calibrationId}
+          startUnlocked={view.startUnlocked}
+          onBack={pop}
+        />
       )}
 
       {view.name === 'parametres' && <ParametresPage />}

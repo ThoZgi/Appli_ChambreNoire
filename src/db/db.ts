@@ -1,6 +1,9 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { ChimieStock, Developpement, Photo, Tirage } from '../types'
+import type { CalibrationSession, ChimieStock, Developpement, Photo, Tirage } from '../types'
 import {
+  CALIBRATION_GRADES,
+  emptyCalibrationGradeEntry,
+  emptyCalibrationSession,
   emptyExposition,
   emptyBandeTest,
   emptyChimie,
@@ -34,13 +37,18 @@ interface ChambreNoireDB extends DBSchema {
     value: ChimieStock
     indexes: { 'by-createdAt': number }
   }
+  calibrations: {
+    key: string
+    value: CalibrationSession
+    indexes: { 'by-createdAt': number }
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<ChambreNoireDB>> | null = null
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<ChambreNoireDB>('chambre-noire', 3, {
+    dbPromise = openDB<ChambreNoireDB>('chambre-noire', 4, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const photos = db.createObjectStore('photos', { keyPath: 'id' })
@@ -56,6 +64,10 @@ function getDB() {
         if (oldVersion < 3) {
           const chimieStocks = db.createObjectStore('chimieStocks', { keyPath: 'id' })
           chimieStocks.createIndex('by-createdAt', 'createdAt')
+        }
+        if (oldVersion < 4) {
+          const calibrations = db.createObjectStore('calibrations', { keyPath: 'id' })
+          calibrations.createIndex('by-createdAt', 'createdAt')
         }
       },
     })
@@ -156,6 +168,17 @@ function normalizeChimieStock(stock: ChimieStock): ChimieStock {
     dateMiseEnService: stock.dateMiseEnService ?? '',
     statut: stock.statut ?? 'actif',
     notes: stock.notes ?? '',
+  }
+}
+
+function normalizeCalibration(session: CalibrationSession): CalibrationSession {
+  const grades = session.grades ?? {}
+  return {
+    ...emptyCalibrationSession(),
+    ...session,
+    grades: Object.fromEntries(
+      CALIBRATION_GRADES.map((g) => [g, { ...emptyCalibrationGradeEntry(), ...grades[g] }]),
+    ) as CalibrationSession['grades'],
   }
 }
 
@@ -318,6 +341,37 @@ export async function deleteChimieStock(id: string): Promise<void> {
   await db.delete('chimieStocks', id)
 }
 
+export async function addCalibration(
+  data: Omit<CalibrationSession, 'id' | 'createdAt'>,
+): Promise<CalibrationSession> {
+  const session: CalibrationSession = { ...data, id: makeId(), createdAt: Date.now() }
+  const db = await getDB()
+  await db.put('calibrations', session)
+  return session
+}
+
+export async function getCalibrations(): Promise<CalibrationSession[]> {
+  const db = await getDB()
+  const sessions = await db.getAllFromIndex('calibrations', 'by-createdAt')
+  return sessions.reverse().map(normalizeCalibration)
+}
+
+export async function getCalibration(id: string): Promise<CalibrationSession | undefined> {
+  const db = await getDB()
+  const session = await db.get('calibrations', id)
+  return session ? normalizeCalibration(session) : undefined
+}
+
+export async function updateCalibration(session: CalibrationSession): Promise<void> {
+  const db = await getDB()
+  await db.put('calibrations', session)
+}
+
+export async function deleteCalibration(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('calibrations', id)
+}
+
 export interface BackupData {
   version: number
   exportedAt: number
@@ -325,32 +379,36 @@ export interface BackupData {
   tirages: Tirage[]
   developpements: Developpement[]
   chimieStocks: ChimieStock[]
+  calibrations: CalibrationSession[]
 }
 
 export async function exportAllData(): Promise<BackupData> {
   const db = await getDB()
-  const [photos, tirages, developpements, chimieStocks] = await Promise.all([
+  const [photos, tirages, developpements, chimieStocks, calibrations] = await Promise.all([
     db.getAll('photos'),
     db.getAll('tirages'),
     db.getAll('developpements'),
     db.getAll('chimieStocks'),
+    db.getAll('calibrations'),
   ])
-  return { version: 3, exportedAt: Date.now(), photos, tirages, developpements, chimieStocks }
+  return { version: 4, exportedAt: Date.now(), photos, tirages, developpements, chimieStocks, calibrations }
 }
 
 export async function restoreAllData(data: BackupData): Promise<void> {
   const db = await getDB()
-  const tx = db.transaction(['photos', 'tirages', 'developpements', 'chimieStocks'], 'readwrite')
+  const tx = db.transaction(['photos', 'tirages', 'developpements', 'chimieStocks', 'calibrations'], 'readwrite')
   await Promise.all([
     tx.objectStore('photos').clear(),
     tx.objectStore('tirages').clear(),
     tx.objectStore('developpements').clear(),
     tx.objectStore('chimieStocks').clear(),
+    tx.objectStore('calibrations').clear(),
   ])
   for (const photo of data.photos) await tx.objectStore('photos').put(photo)
   for (const tirage of data.tirages) await tx.objectStore('tirages').put(tirage)
   for (const developpement of data.developpements) await tx.objectStore('developpements').put(developpement)
   for (const stock of data.chimieStocks) await tx.objectStore('chimieStocks').put(stock)
+  for (const session of data.calibrations) await tx.objectStore('calibrations').put(session)
   await tx.done
 }
 

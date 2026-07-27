@@ -186,6 +186,55 @@ export interface Tirage {
   notes: string
 }
 
+export const CALIBRATION_GRADES = ['00', '0', '1', '2', '3', '4', '5'] as const
+export type CalibrationGrade = (typeof CALIBRATION_GRADES)[number]
+export type CalibrationPas = '1/4' | '1/6' | '1/12'
+
+export interface CalibrationGradeEntry {
+  pas: CalibrationPas
+  ecart: string
+  decalage: string
+  stepOmbre: string
+  stepLumiere: string
+}
+
+export interface CalibrationSession {
+  id: string
+  createdAt: number
+  nom: string
+  papier: string
+  developpeur: string
+  agrandisseur: string
+  canalPAP: string
+  grades: Record<CalibrationGrade, CalibrationGradeEntry>
+  etape1Confirmee: boolean
+  notes: string
+}
+
+export function emptyCalibrationGradeEntry(): CalibrationGradeEntry {
+  return { pas: '1/4', ecart: '', decalage: '', stepOmbre: '', stepLumiere: '' }
+}
+
+export function emptyCalibrationGrades(): Record<CalibrationGrade, CalibrationGradeEntry> {
+  return Object.fromEntries(CALIBRATION_GRADES.map((g) => [g, emptyCalibrationGradeEntry()])) as Record<
+    CalibrationGrade,
+    CalibrationGradeEntry
+  >
+}
+
+export function emptyCalibrationSession(): Omit<CalibrationSession, 'id' | 'createdAt'> {
+  return {
+    nom: '',
+    papier: '',
+    developpeur: '',
+    agrandisseur: '',
+    canalPAP: '',
+    grades: emptyCalibrationGrades(),
+    etape1Confirmee: false,
+    notes: '',
+  }
+}
+
 export function emptyChemistryStep(): ChemistryStep {
   return { nom: '', dilution: '', temps: '', temperature: 20, chimieStockId: null, degreVinaigre: '' }
 }

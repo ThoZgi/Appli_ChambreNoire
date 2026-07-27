@@ -43,6 +43,7 @@ body {
 .main-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 12px 16px;
   background: var(--bg-elevated);
@@ -1229,4 +1230,119 @@ button {
   color: var(--accent);
   font-weight: 600;
   font-size: 13px;
+}
+
+.calib-formula {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.calib-grade {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.calib-grade:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.calib-grade-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.calib-note {
+  color: #ff9800;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.calib-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.calib-value {
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 700;
+  color: #4caf50;
+}
+
+.calib-value-empty {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 15px;
+}
+
+.calib-plaus {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.calib-plaus-ok {
+  color: #4caf50;
+}
+
+.calib-plaus-warn {
+  color: #ff9800;
+}
+
+.calib-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.calib-lock {
+  text-align: center;
+  gap: 10px;
+}
+
+.calib-table-wrap {
+  overflow-x: auto;
+}
+
+.calib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.calib-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calib-table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calib-cell-value {
+  font-family: var(--mono);
+  color: var(--accent);
 }

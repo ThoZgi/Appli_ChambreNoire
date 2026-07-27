@@ -9,6 +9,7 @@ interface SerializedBackup {
   tirages: unknown[]
   developpements: unknown[]
   chimieStocks: unknown[]
+  calibrations?: unknown[]
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {
@@ -52,6 +53,7 @@ export async function exportBackupFile(): Promise<void> {
     tirages: await serializeRecords(data.tirages, 'printImageBlob'),
     developpements: await serializeRecords(data.developpements, 'plancheContactBlob'),
     chimieStocks: data.chimieStocks,
+    calibrations: data.calibrations,
   }
   const json = JSON.stringify(serialized)
   const blob = new Blob([json], { type: 'application/json' })
@@ -69,6 +71,7 @@ export async function importBackupFile(file: File): Promise<void> {
     tirages: await deserializeRecords(serialized.tirages, 'printImageBlob'),
     developpements: await deserializeRecords(serialized.developpements, 'plancheContactBlob'),
     chimieStocks: serialized.chimieStocks as BackupData['chimieStocks'],
+    calibrations: (serialized.calibrations ?? []) as BackupData['calibrations'],
   }
   await restoreAllData(data)
 }
