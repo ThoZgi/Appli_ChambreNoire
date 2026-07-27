@@ -1,4 +1,5 @@
-import type { CalibrationGrade, CalibrationGradeEntry, CalibrationPas } from '../types'
+import type { CalibrationGrade, CalibrationGradeEntry, CalibrationPas, CalibrationSource } from '../types'
+import { CALIBRATION_GRADES } from '../types'
 
 const UNITS_PER_CRAN: Record<CalibrationPas, number> = { '1/4': 3, '1/6': 2, '1/12': 1 }
 const UNITS_PER_STOP = 12
@@ -65,6 +66,71 @@ export function contrastePlausibility(grade: CalibrationGrade, isoR: number | nu
       : { tone: 'warn', text: 'Hors plage habituelle pour ce grade (25–110) — à vérifier.' }
   }
   return { tone: 'ok', text: 'Zone de transition — pas de plage stricte à ce grade.' }
+}
+
+export const CALIBRATION_CHECKLIST: { id: string; label: string }[] = [
+  {
+    id: 'kit',
+    label:
+      'Kit de calibration RH Designs : gamme de gris Stouffer 21 steps + pastille de densité (référence haute lumière et référence ombre)',
+  },
+  {
+    id: 'papier',
+    label:
+      '2 à 3 feuilles 10x8 du papier à calibrer, découpées : 7 bandes ~125×25 mm (exposition) + 7 morceaux ~100×50 mm (contraste)',
+  },
+  {
+    id: 'chimie',
+    label: 'Développeur et fixateur fraîchement préparés, à la dilution et température habituelles de travail',
+  },
+  { id: 'canal', label: 'Sonde réglée sur le canal PAP à calibrer' },
+  {
+    id: 'session',
+    label:
+      'Une session complète disponible : toute la calibration doit se faire en une seule fois (même hauteur de tête, même ouverture, mêmes chimies)',
+  },
+]
+
+export const CALIBRATION_SOURCE_LABELS: Record<CalibrationSource, string> = {
+  halogene: 'Halogène',
+  led_froide: 'LED / lumière froide',
+  autre: 'Autre',
+}
+
+export function checklistComplete(checklist: Record<string, boolean>): boolean {
+  return CALIBRATION_CHECKLIST.every((item) => checklist[item.id])
+}
+
+export function mesureInitialeGuidance(temps: string): Plausibility | null {
+  const t = parseNumber(temps)
+  if (t === null) return null
+  if (t >= 10 && t <= 20) return { tone: 'ok', text: 'Temps idéal — vous pouvez passer aux bandes test.' }
+  if (t > 20) {
+    return {
+      tone: 'warn',
+      text: "Trop long : ouvrez l'objectif d'un cran, pressez X sur la sonde, re-mesurez. Répétez jusqu'à retomber entre 10 et 20 s.",
+    }
+  }
+  if (t >= 5) {
+    return {
+      tone: 'warn',
+      text: 'Utilisable mais précision réduite (incréments trop courts). Si possible, montez la tête ou fermez davantage.',
+    }
+  }
+  return {
+    tone: 'warn',
+    text: "Trop court : utilisez le mode bandes séparées de la sonde, ou ajoutez un filtre ND (une amorce de film développée non exposée convient ; sur tête couleur, quantités égales de C+M+Y).",
+  }
+}
+
+export function gradesSansCorrection(
+  grades: Record<CalibrationGrade, CalibrationGradeEntry>,
+): CalibrationGrade[] {
+  return CALIBRATION_GRADES.filter((g) => computeCorrectionExposition(grades[g]) === null)
+}
+
+export function gradesSansIsoR(grades: Record<CalibrationGrade, CalibrationGradeEntry>): CalibrationGrade[] {
+  return CALIBRATION_GRADES.filter((g) => computeIsoR(grades[g]) === null)
 }
 
 export function isoRTrend(values: (number | null)[]): Plausibility | null {

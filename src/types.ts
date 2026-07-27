@@ -198,6 +198,8 @@ export interface CalibrationGradeEntry {
   stepLumiere: string
 }
 
+export type CalibrationSource = 'halogene' | 'led_froide' | 'autre'
+
 export interface CalibrationSession {
   id: string
   createdAt: number
@@ -206,8 +208,12 @@ export interface CalibrationSession {
   developpeur: string
   agrandisseur: string
   canalPAP: string
+  sourceLumiere: CalibrationSource
+  checklist: Record<string, boolean>
+  tempsMesureInitial: string
   grades: Record<CalibrationGrade, CalibrationGradeEntry>
   etape1Confirmee: boolean
+  etape2Confirmee: boolean
   notes: string
 }
 
@@ -229,8 +235,12 @@ export function emptyCalibrationSession(): Omit<CalibrationSession, 'id' | 'crea
     developpeur: '',
     agrandisseur: '',
     canalPAP: '',
+    sourceLumiere: 'halogene',
+    checklist: {},
+    tempsMesureInitial: '',
     grades: emptyCalibrationGrades(),
     etape1Confirmee: false,
+    etape2Confirmee: false,
     notes: '',
   }
 }

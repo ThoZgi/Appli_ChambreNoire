@@ -176,6 +176,7 @@ function normalizeCalibration(session: CalibrationSession): CalibrationSession {
   return {
     ...emptyCalibrationSession(),
     ...session,
+    checklist: session.checklist ?? {},
     grades: Object.fromEntries(
       CALIBRATION_GRADES.map((g) => [g, { ...emptyCalibrationGradeEntry(), ...grades[g] }]),
     ) as CalibrationSession['grades'],
