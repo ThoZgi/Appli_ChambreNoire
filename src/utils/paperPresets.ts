@@ -11,7 +11,16 @@ export const PAPER_STOCK_PRESETS = [
   'Bergger COT320',
 ]
 
-export const PAPER_FORMAT_PRESETS = ['9x13', '10x15', '13x18', '18x24', '20x25', '24x30', '30x40', '40x50']
+export const PAPER_FINISH_PRESETS = [
+  'Brillant (glossy)',
+  'Perlé (pearl)',
+  'Satiné (satin)',
+  'Lustré (lustre)',
+  'Semi-mat',
+  'Mat (matt)',
+]
+
+export const PAPER_FORMAT_PRESETS =['9x13', '10x15', '13x18', '18x24', '20x25', '24x30', '30x40', '40x50']
 
 export const TONER_PRESETS = [
   'Kodak Rapid Selenium Toner',

@@ -1,7 +1,12 @@
-import type { Exposition } from '../types'
-import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS } from '../utils/paperPresets'
+import type { Exposition, TypeEclairage } from '../types'
+import { PAPER_STOCK_PRESETS, PAPER_FORMAT_PRESETS, PAPER_FINISH_PRESETS } from '../utils/paperPresets'
 import { ENLARGER_PRESETS, LENS_PRESETS } from '../utils/equipmentPresets'
 import SelectOrCustom from './SelectOrCustom'
+
+const ECLAIRAGE_OPTIONS: [Exclude<TypeEclairage, ''>, string][] = [
+  ['condenseur', 'Condenseur'],
+  ['diffusion', 'Diffusion'],
+]
 
 interface MaterielPapierFormProps {
   value: Exposition
@@ -47,6 +52,26 @@ export default function MaterielPapierForm({ value, onChange }: MaterielPapierFo
         </label>
       </div>
 
+      <div className="stops-row">
+        <span className="field-label-inline">Éclairage :</span>
+        {ECLAIRAGE_OPTIONS.map(([type, label]) => (
+          <button
+            key={type}
+            type="button"
+            className={value.typeEclairage === type ? 'chip chip-active' : 'chip'}
+            onClick={() => set('typeEclairage', value.typeEclairage === type ? '' : type)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {value.typeEclairage === 'condenseur' && (
+        <p className="muted">
+          Un condenseur rend environ un grade plus contrasté qu'une tête à diffusion, et marque davantage les
+          poussières et rayures du négatif.
+        </p>
+      )}
+
       <h3>Papier</h3>
       <div className="field-row">
         <label className="field-label">
@@ -65,6 +90,15 @@ export default function MaterielPapierForm({ value, onChange }: MaterielPapierFo
             options={PAPER_FORMAT_PRESETS}
             onChange={(v) => set('formatPapier', v)}
             placeholder="ex : 18x24"
+          />
+        </label>
+        <label className="field-label">
+          Finition
+          <SelectOrCustom
+            value={value.finitionPapier}
+            options={PAPER_FINISH_PRESETS}
+            onChange={(v) => set('finitionPapier', v)}
+            placeholder="ex : finition personnalisée"
           />
         </label>
       </div>

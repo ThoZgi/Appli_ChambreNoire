@@ -46,6 +46,7 @@ export default function PhotoDetailPage({
     const exposition = emptyExposition()
     if (previous) {
       exposition.agrandisseur = previous.exposition.agrandisseur
+      exposition.typeEclairage = previous.exposition.typeEclairage
       exposition.optique = previous.exposition.optique
       exposition.hauteurColonne = previous.exposition.hauteurColonne
     }

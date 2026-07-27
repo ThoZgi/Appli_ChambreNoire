@@ -27,12 +27,16 @@ export interface Chimie {
   notes: string
 }
 
+export type TypeEclairage = 'condenseur' | 'diffusion' | ''
+
 export interface Exposition {
   agrandisseur: string
+  typeEclairage: TypeEclairage
   optique: string
   hauteurColonne: string
   typePapier: string
   formatPapier: string
+  finitionPapier: string
   papierBaryte: boolean
   filtreND: string
   tempsBase: string
@@ -256,10 +260,12 @@ export function emptyChimieStock(): Omit<ChimieStock, 'id' | 'createdAt'> {
 export function emptyExposition(): Exposition {
   return {
     agrandisseur: '',
+    typeEclairage: '',
     optique: '',
     hauteurColonne: '',
     typePapier: '',
     formatPapier: '',
+    finitionPapier: '',
     papierBaryte: false,
     filtreND: '',
     tempsBase: '',

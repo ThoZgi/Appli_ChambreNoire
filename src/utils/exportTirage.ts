@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import type { ChimieStock, DodgeBurnZone, Tirage } from '../types'
+import type { ChimieStock, DodgeBurnZone, Tirage, TypeEclairage } from '../types'
 import { baseExpositionLabel, zoneActionLabel } from './dodgeBurnRender'
 import { renderAnnotatedPrintImage } from './annotatedPrintImage'
 import { slugify } from './slug'
@@ -17,6 +17,12 @@ const INK: [number, number, number] = [38, 34, 35]
 const MUTED: [number, number, number] = [107, 101, 112]
 const RULE: [number, number, number] = [226, 221, 216]
 const ZEBRA: [number, number, number] = [247, 244, 241]
+
+const ECLAIRAGE_LABELS: Record<TypeEclairage, string> = {
+  condenseur: 'Condenseur',
+  diffusion: 'Diffusion',
+  '': '',
+}
 
 export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStock[] = []): Promise<void> {
   const stockName = (id: string | null) => chimieStocks.find((s) => s.id === id)?.nom ?? ''
@@ -196,10 +202,12 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
   drawSectionTitle('Matériel & Papier')
   drawKeyValueGrid([
     ['Agrandisseur', exp.agrandisseur],
+    ['Éclairage', ECLAIRAGE_LABELS[exp.typeEclairage]],
     ['Optique', exp.optique],
     ['Hauteur de colonne', exp.hauteurColonne],
     ['Type de papier', exp.typePapier],
     ['Format papier', exp.formatPapier],
+    ['Finition', exp.finitionPapier],
     ['Papier baryté', exp.papierBaryte ? 'Oui' : ''],
   ])
 
