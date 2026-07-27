@@ -56,6 +56,7 @@ export default function PhotoDetailPage({
       chimie: emptyChimie(),
       printImageBlob: null,
       dodgeBurnZones: [],
+      circuits: [],
       localizedBandeTests: [],
       methodeExposition: 'bandeTest',
       bandeTest: emptyBandeTest(),

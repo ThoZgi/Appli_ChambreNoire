@@ -134,6 +134,7 @@ function normalizeTirage(tirage: Tirage): Tirage {
     statut: tirage.statut ?? 'en_cours',
     localizedBandeTests: (tirage.localizedBandeTests ?? []).map(cleanLocalizedBandeTest),
     dodgeBurnZones: (tirage.dodgeBurnZones ?? []).map(cleanDodgeBurnZone),
+    circuits: tirage.circuits ?? [],
   }
 }
 

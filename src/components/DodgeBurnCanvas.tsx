@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import type { DodgeBurnType, DodgeBurnZone } from '../types'
+import type { CircuitTrace, DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
 import { STOP_PRESETS } from '../utils/stops'
 import { FILTER_GRADE_PRESETS } from '../utils/formats'
-import { baseExpositionLabel, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
+import { baseExpositionLabel, renderCircuitsOnCanvas, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
 import NumberStepper from './NumberStepper'
 import SelectOrCustom from './SelectOrCustom'
 
@@ -11,6 +11,8 @@ interface DodgeBurnCanvasProps {
   photoBlob: Blob
   zones: DodgeBurnZone[]
   onZonesChange: (zones: DodgeBurnZone[]) => void
+  circuits: CircuitTrace[]
+  onCircuitsChange: (circuits: CircuitTrace[]) => void
   tempsBase: string
   gradeEnabled?: boolean
   defaultGrade?: string
@@ -31,6 +33,8 @@ export default function DodgeBurnCanvas({
   photoBlob,
   zones,
   onZonesChange,
+  circuits,
+  onCircuitsChange,
   tempsBase,
   gradeEnabled,
   defaultGrade,
@@ -41,11 +45,13 @@ export default function DodgeBurnCanvas({
   const drawingRef = useRef<{ x: number; y: number }[] | null>(null)
 
   const [mode, setMode] = useState<DodgeBurnType>('dodge')
+  const [tool, setTool] = useState<'brush' | 'circuit'>('brush')
   const [stops, setStops] = useState(0.25)
   const [brushSize, setBrushSize] = useState(0.03)
   const [grade, setGrade] = useState(defaultGrade ?? '')
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[] | null>(null)
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null)
+  const [circuitHasArrow, setCircuitHasArrow] = useState(true)
 
   function draw() {
     const canvas = canvasRef.current
@@ -54,15 +60,22 @@ export default function DodgeBurnCanvas({
     if (!ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    const allStrokes = currentPath ? [...zones, { id: '_current', type: mode, stops, path: currentPath, brushSize }] : zones
+    const isDrawingCircuit = currentPath && tool === 'circuit'
+    const isDrawingZone = currentPath && tool === 'brush'
 
-    renderZonesOnCanvas(ctx, canvas, allStrokes, activeZoneId)
+    const allZones = isDrawingZone ? [...zones, { id: '_current', type: mode, stops, path: currentPath, brushSize }] : zones
+    const allCircuits = isDrawingCircuit
+      ? [...circuits, { id: '_current', type: mode, path: currentPath, hasArrow: circuitHasArrow }]
+      : circuits
+
+    renderZonesOnCanvas(ctx, canvas, allZones, activeZoneId)
+    renderCircuitsOnCanvas(ctx, canvas, allCircuits)
   }
 
   useEffect(() => {
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zones, currentPath, mode, stops, brushSize, activeZoneId])
+  }, [zones, circuits, currentPath, mode, tool, stops, brushSize, activeZoneId, circuitHasArrow])
 
   useEffect(() => {
     function resize() {
@@ -103,6 +116,11 @@ export default function DodgeBurnCanvas({
     drawingRef.current = null
     setCurrentPath(null)
     if (!path || path.length === 0) return
+    if (tool === 'circuit') {
+      const circuit: CircuitTrace = { id: crypto.randomUUID(), type: mode, path, hasArrow: circuitHasArrow }
+      onCircuitsChange([...circuits, circuit])
+      return
+    }
     const zone: DodgeBurnZone = {
       id: crypto.randomUUID(),
       type: mode,
@@ -118,6 +136,10 @@ export default function DodgeBurnCanvas({
   function handleDeleteZone(id: string) {
     onZonesChange(zones.filter((z) => z.id !== id))
     if (activeZoneId === id) setActiveZoneId(null)
+  }
+
+  function handleDeleteLastCircuit() {
+    onCircuitsChange(circuits.slice(0, -1))
   }
 
   function updateZone(id: string, patch: Partial<DodgeBurnZone>) {
@@ -271,6 +293,23 @@ export default function DodgeBurnCanvas({
           </button>
         </div>
 
+        <div className="mode-toggle">
+          <button
+            type="button"
+            className={tool === 'brush' ? 'chip chip-active' : 'chip'}
+            onClick={() => setTool('brush')}
+          >
+            Pinceau
+          </button>
+          <button
+            type="button"
+            className={tool === 'circuit' ? 'chip chip-active' : 'chip'}
+            onClick={() => setTool('circuit')}
+          >
+            Circuit
+          </button>
+        </div>
+
         {gradeEnabled && (
           <div className="stops-row">
             <span className="field-label-inline">Grade :</span>
@@ -299,17 +338,38 @@ export default function DodgeBurnCanvas({
           <span className="muted">stop(s)</span>
         </div>
 
-        <label className="brush-row">
-          Taille du pinceau
-          <input
-            type="range"
-            min={0.01}
-            max={0.08}
-            step={0.005}
-            value={brushSize}
-            onChange={(e) => setBrushSize(Number(e.target.value))}
-          />
-        </label>
+        {tool === 'circuit' ? (
+          <div className="stops-row">
+            <label className="field-label-inline">
+              <input
+                type="checkbox"
+                checked={circuitHasArrow}
+                onChange={(e) => setCircuitHasArrow(e.target.checked)}
+              />{' '}
+              Pointe de flèche
+            </label>
+            <button
+              type="button"
+              className="btn-link"
+              disabled={circuits.length === 0}
+              onClick={handleDeleteLastCircuit}
+            >
+              Effacer le dernier circuit
+            </button>
+          </div>
+        ) : (
+          <label className="brush-row">
+            Taille du pinceau
+            <input
+              type="range"
+              min={0.01}
+              max={0.08}
+              step={0.005}
+              value={brushSize}
+              onChange={(e) => setBrushSize(Number(e.target.value))}
+            />
+          </label>
+        )}
       </div>
 
       <div className="dodge-burn-canvas-wrap" ref={containerRef}>

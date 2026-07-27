@@ -78,6 +78,29 @@ function tracePath(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, pat
   }
 }
 
+function drawArrowhead(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  headLength: number,
+  colorRgba: string,
+) {
+  const x1 = from.x * canvas.width
+  const y1 = from.y * canvas.height
+  const x2 = to.x * canvas.width
+  const y2 = to.y * canvas.height
+  const angle = Math.atan2(y2 - y1, x2 - x1)
+  const spread = Math.PI / 7
+  ctx.beginPath()
+  ctx.moveTo(x2, y2)
+  ctx.lineTo(x2 - headLength * Math.cos(angle - spread), y2 - headLength * Math.sin(angle - spread))
+  ctx.lineTo(x2 - headLength * Math.cos(angle + spread), y2 - headLength * Math.sin(angle + spread))
+  ctx.closePath()
+  ctx.fillStyle = colorRgba
+  ctx.fill()
+}
+
 export function renderZonesOnCanvas(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -104,5 +127,30 @@ export function renderZonesOnCanvas(
     ctx.lineWidth = zone.brushSize * canvas.width
     ctx.stroke()
     drawZoneLabel(ctx, canvas, zone)
+  }
+}
+
+export function renderCircuitsOnCanvas(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  circuits: { id: string; type: DodgeBurnType; path: { x: number; y: number }[]; hasArrow?: boolean }[],
+) {
+  for (const circuit of circuits) {
+    if (circuit.path.length < 1) continue
+    const color = circuit.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
+    const lineWidth = Math.max(2, canvas.width * 0.0025)
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+
+    tracePath(ctx, canvas, circuit.path)
+    ctx.strokeStyle = `rgba(${color}, 0.9)`
+    ctx.lineWidth = lineWidth
+    ctx.stroke()
+
+    if (circuit.hasArrow !== false && circuit.path.length > 1) {
+      const last = circuit.path[circuit.path.length - 1]
+      const prev = circuit.path[circuit.path.length - 2]
+      drawArrowhead(ctx, canvas, prev, last, Math.max(lineWidth * 3, 8), `rgba(${color}, 0.9)`)
+    }
   }
 }

@@ -1,5 +1,5 @@
-import type { DodgeBurnZone } from '../types'
-import { renderZonesOnCanvas } from './dodgeBurnRender'
+import type { CircuitTrace, DodgeBurnZone } from '../types'
+import { renderCircuitsOnCanvas, renderZonesOnCanvas } from './dodgeBurnRender'
 
 export interface AnnotatedPrintImage {
   dataUrl: string
@@ -7,7 +7,11 @@ export interface AnnotatedPrintImage {
   height: number
 }
 
-export async function renderAnnotatedPrintImage(photoBlob: Blob, zones: DodgeBurnZone[]): Promise<AnnotatedPrintImage> {
+export async function renderAnnotatedPrintImage(
+  photoBlob: Blob,
+  zones: DodgeBurnZone[],
+  circuits: CircuitTrace[] = [],
+): Promise<AnnotatedPrintImage> {
   const url = URL.createObjectURL(photoBlob)
   try {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -25,6 +29,7 @@ export async function renderAnnotatedPrintImage(photoBlob: Blob, zones: DodgeBur
 
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
     renderZonesOnCanvas(ctx, canvas, zones)
+    renderCircuitsOnCanvas(ctx, canvas, circuits)
 
     return { dataUrl: canvas.toDataURL('image/jpeg', 0.92), width: canvas.width, height: canvas.height }
   } finally {

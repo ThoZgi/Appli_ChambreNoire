@@ -55,6 +55,13 @@ export interface DodgeBurnZone {
   nombrePassages?: number
 }
 
+export interface CircuitTrace {
+  id: string
+  type: DodgeBurnType
+  path: { x: number; y: number }[]
+  hasArrow: boolean
+}
+
 export interface BandeTestStep {
   id: string
   note: string
@@ -81,6 +88,7 @@ export interface GradeTestStrip {
   localizedBandeTests: LocalizedBandeTest[]
   tempsExposition: string
   dodgeBurnZones: DodgeBurnZone[]
+  circuits: CircuitTrace[]
 }
 
 export interface SplitGrading {
@@ -167,6 +175,7 @@ export interface Tirage {
   chimie: Chimie
   printImageBlob: Blob | null
   dodgeBurnZones: DodgeBurnZone[]
+  circuits: CircuitTrace[]
   localizedBandeTests: LocalizedBandeTest[]
   methodeExposition: MethodeExposition
   bandeTest: BandeTest
@@ -225,7 +234,7 @@ export function emptyZoneMasterReading(): ZoneMasterReading {
 }
 
 export function emptyGradeTestStrip(grade: string): GradeTestStrip {
-  return { grade, localizedBandeTests: [], tempsExposition: '', dodgeBurnZones: [] }
+  return { grade, localizedBandeTests: [], tempsExposition: '', dodgeBurnZones: [], circuits: [] }
 }
 
 export function emptyLocalizedBandeTest(tempsDepart: string, grade = ''): LocalizedBandeTest {

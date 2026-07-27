@@ -1,4 +1,4 @@
-import type { DodgeBurnZone, GradeTestStrip, LocalizedBandeTest, SplitGrading } from '../types'
+import type { CircuitTrace, DodgeBurnZone, GradeTestStrip, LocalizedBandeTest, SplitGrading } from '../types'
 import DodgeBurnCanvas from './DodgeBurnCanvas'
 import LocalizedBandeTestList from './LocalizedBandeTestList'
 import NumberStepper from './NumberStepper'
@@ -21,6 +21,10 @@ export default function SplitGradingForm({ value, onChange, printImageBlob, base
 
   function updateDodgeBurnZones(key: 'grade00' | 'gradeDur', zones: DodgeBurnZone[]) {
     updateGradeStrip(key, { ...value[key], dodgeBurnZones: zones })
+  }
+
+  function updateCircuits(key: 'grade00' | 'gradeDur', circuits: CircuitTrace[]) {
+    updateGradeStrip(key, { ...value[key], circuits })
   }
 
   function renderGradeBlock(key: 'grade00' | 'gradeDur', label: string, title: string) {
@@ -59,6 +63,8 @@ export default function SplitGradingForm({ value, onChange, printImageBlob, base
             photoBlob={printImageBlob}
             zones={strip.dodgeBurnZones}
             onZonesChange={(zones) => updateDodgeBurnZones(key, zones)}
+            circuits={strip.circuits}
+            onCircuitsChange={(circuits) => updateCircuits(key, circuits)}
             tempsBase={strip.tempsExposition}
             gradeEnabled
             defaultGrade={strip.grade}

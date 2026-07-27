@@ -432,6 +432,8 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
                       photoBlob={tirage.printImageBlob}
                       zones={tirage.dodgeBurnZones}
                       onZonesChange={(zones: DodgeBurnZone[]) => updateField('dodgeBurnZones', zones)}
+                      circuits={tirage.circuits}
+                      onCircuitsChange={(circuits) => updateField('circuits', circuits)}
                       tempsBase={tirage.exposition.tempsBase}
                       defaultGrade={tirage.exposition.filtreContraste}
                     />

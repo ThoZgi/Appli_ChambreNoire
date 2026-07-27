@@ -304,7 +304,15 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
       tirage.modeRetouche === 'splitGrading'
         ? [...tirage.splitGrading.grade00.dodgeBurnZones, ...tirage.splitGrading.gradeDur.dodgeBurnZones]
         : tirage.dodgeBurnZones
-    const { dataUrl, width, height } = await renderAnnotatedPrintImage(tirage.printImageBlob, allDodgeBurnZones)
+    const allCircuits =
+      tirage.modeRetouche === 'splitGrading'
+        ? [...tirage.splitGrading.grade00.circuits, ...tirage.splitGrading.gradeDur.circuits]
+        : tirage.circuits
+    const { dataUrl, width, height } = await renderAnnotatedPrintImage(
+      tirage.printImageBlob,
+      allDodgeBurnZones,
+      allCircuits,
+    )
     const displayWidth = contentWidth
     const displayHeight = (height / width) * displayWidth
     ensureSpace(displayHeight + 14)
