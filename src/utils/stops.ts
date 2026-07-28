@@ -96,7 +96,7 @@ export function formatStopMultiple(unitStops: number, count: number, sign: StopS
  * Multiples d'un intervalle connu — typiquement celui de la bandelette test dont on part :
  * si la bande avance par 1/3, les corrections utiles sont 1/3, 2/3, 1 stop…
  */
-export function stopMultiplesOf(unitStops: number, maxCount = 8, maxStops = 2): { value: number; label: string }[] {
+export function stopMultiplesOf(unitStops: number, maxCount = 12, maxStops = 2): { value: number; label: string }[] {
   if (!unitStops || unitStops <= 0) return []
   const out: { value: number; label: string }[] = []
   for (let k = 1; k <= maxCount; k++) {
@@ -107,46 +107,7 @@ export function stopMultiplesOf(unitStops: number, maxCount = 8, maxStops = 2): 
   return out
 }
 
-/**
- * Toutes les valeurs proposables pour une zone de dodge & burn, en forme réduite.
- * Granularité fine jusqu'à 1 stop (douzièmes et huitièmes), plus grossière au-delà :
- * une correction de plus d'un stop ne se règle pas au douzième près.
- */
-export const STOP_CHOICES: { value: number; label: string }[] = (() => {
-  const values = new Set<number>()
-  for (const denominator of [12, 8]) {
-    for (let n = 1; n <= denominator; n++) values.add(n / denominator)
-  }
-  for (const v of [5 / 4, 4 / 3, 3 / 2, 5 / 3, 7 / 4, 2, 5 / 2, 3]) values.add(v)
-  return [...values]
-    .sort((a, b) => a - b)
-    .map((value) => ({ value, label: formatStops(value) }))
-})()
-
-const GROUP_LABELS: Record<number, string> = {
-  1: 'Stops entiers',
-  2: 'Demis',
-  3: 'Tiers',
-  4: 'Quarts',
-  6: 'Sixièmes',
-  8: 'Huitièmes',
-  12: 'Douzièmes',
-}
-
-/** Les mêmes valeurs, rangées par famille (du plus grossier au plus fin). Chaque valeur n'apparaît qu'une fois. */
-export const STOP_CHOICE_GROUPS: { label: string; choices: { value: number; label: string }[] }[] = (() => {
-  const byDenominator = new Map<number, { value: number; label: string }[]>()
-  for (const choice of STOP_CHOICES) {
-    const { denominator } = toStopFraction(choice.value)
-    const list = byDenominator.get(denominator) ?? []
-    list.push(choice)
-    byDenominator.set(denominator, list)
-  }
-  return [1, 2, 3, 4, 6, 8, 12]
-    .filter((d) => byDenominator.has(d))
-    .map((d) => ({ label: GROUP_LABELS[d], choices: byDenominator.get(d)! }))
-})()
-
+/** Seul endroit où la valeur décimale sert : convertir un écart en stops vers un temps en secondes. */
 export function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
   const base = parseFloat(tempsDepart) || 0
   return base * Math.pow(2, index * incrementStops)
