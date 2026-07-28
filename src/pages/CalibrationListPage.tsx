@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { addCalibration, deleteCalibration, getCalibrations } from '../db/db'
 import type { CalibrationSession } from '../types'
 import { emptyCalibrationSession } from '../types'
-import { PAPER_STOCK_PRESETS } from '../utils/paperPresets'
+import { PAPER_FINISH_PRESETS, PAPER_STOCK_PRESETS } from '../utils/paperPresets'
 import { PAPER_DEVELOPER_PRESETS } from '../utils/presets'
 import { slugify } from '../utils/slug'
 import SelectOrCustom from '../components/SelectOrCustom'
@@ -32,6 +32,7 @@ export default function CalibrationListPage({ onSelectCalibration }: Calibration
   const [sessions, setSessions] = useState<CalibrationSession[]>([])
   const [showForm, setShowForm] = useState(false)
   const [papier, setPapier] = useState('')
+  const [finitionPapier, setFinitionPapier] = useState('')
   const [developpeur, setDeveloppeur] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -48,8 +49,15 @@ export default function CalibrationListPage({ onSelectCalibration }: Calibration
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const nom = generateNom(papier, sessions)
-    const session = await addCalibration({ ...emptyCalibrationSession(), nom, papier, developpeur })
+    const session = await addCalibration({
+      ...emptyCalibrationSession(),
+      nom,
+      papier,
+      finitionPapier,
+      developpeur,
+    })
     setPapier('')
+    setFinitionPapier('')
     setDeveloppeur('')
     setShowForm(false)
     await refresh()
@@ -93,6 +101,15 @@ export default function CalibrationListPage({ onSelectCalibration }: Calibration
             />
           </label>
           <label className="field-label">
+            Finition
+            <SelectOrCustom
+              value={finitionPapier}
+              options={PAPER_FINISH_PRESETS}
+              onChange={setFinitionPapier}
+              placeholder="ex : finition personnalisée"
+            />
+          </label>
+          <label className="field-label">
             Révélateur papier
             <SelectOrCustom
               value={developpeur}
@@ -120,7 +137,7 @@ export default function CalibrationListPage({ onSelectCalibration }: Calibration
               <div className="tirage-card-info">
                 <strong>{session.nom || 'Calibration sans nom'}</strong>
                 <span className="muted">
-                  {session.papier || 'Papier non renseigné'} ·{' '}
+                  {[session.papier, session.finitionPapier].filter(Boolean).join(' — ') || 'Papier non renseigné'} ·{' '}
                   {new Date(session.createdAt).toLocaleDateString('fr-FR')}
                 </span>
                 <span className="muted">

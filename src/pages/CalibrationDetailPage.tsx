@@ -8,6 +8,10 @@ import type {
   CalibrationSource,
 } from '../types'
 import { CALIBRATION_GRADES } from '../types'
+import SelectOrCustom from '../components/SelectOrCustom'
+import { ENLARGER_PRESETS } from '../utils/equipmentPresets'
+import { PAPER_DEVELOPER_PRESETS } from '../utils/presets'
+import { PAPER_FINISH_PRESETS, PAPER_STOCK_PRESETS } from '../utils/paperPresets'
 import {
   CALIBRATION_CHECKLIST,
   CALIBRATION_PAS_OPTIONS,
@@ -192,31 +196,44 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
               <div className="field-row">
                 <label className="field-label">
                   Papier calibré
-                  <input
-                    className="field-input"
+                  <SelectOrCustom
                     value={session.papier}
-                    onChange={(e) => updateField('papier', e.target.value)}
-                    placeholder="ex : Ilford Multigrade RC Deluxe"
+                    options={PAPER_STOCK_PRESETS}
+                    onChange={(v) => updateField('papier', v)}
+                    placeholder="ex : papier personnalisé"
+                  />
+                </label>
+                <label className="field-label">
+                  Finition
+                  <SelectOrCustom
+                    value={session.finitionPapier}
+                    options={PAPER_FINISH_PRESETS}
+                    onChange={(v) => updateField('finitionPapier', v)}
+                    placeholder="ex : finition personnalisée"
                   />
                 </label>
                 <label className="field-label">
                   Révélateur papier
-                  <input
-                    className="field-input"
+                  <SelectOrCustom
                     value={session.developpeur}
-                    onChange={(e) => updateField('developpeur', e.target.value)}
-                    placeholder="ex : Ilford Multigrade 1+9"
+                    options={PAPER_DEVELOPER_PRESETS}
+                    onChange={(v) => updateField('developpeur', v)}
+                    placeholder="ex : révélateur personnalisé"
                   />
                 </label>
               </div>
+              <p className="muted">
+                Une calibration vaut pour un papier <em>et</em> une finition donnés : brillant et mat n'ont pas le même
+                Dmax, donc pas les mêmes lectures en étape 2.
+              </p>
               <div className="field-row">
                 <label className="field-label">
                   Agrandisseur
-                  <input
-                    className="field-input"
+                  <SelectOrCustom
                     value={session.agrandisseur}
-                    onChange={(e) => updateField('agrandisseur', e.target.value)}
-                    placeholder="ex : Durst M670"
+                    options={ENLARGER_PRESETS}
+                    onChange={(v) => updateField('agrandisseur', v)}
+                    placeholder="ex : agrandisseur personnalisé"
                   />
                 </label>
                 <label className="field-label">

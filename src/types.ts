@@ -209,6 +209,7 @@ export interface CalibrationSession {
   createdAt: number
   nom: string
   papier: string
+  finitionPapier: string
   developpeur: string
   agrandisseur: string
   canalPAP: string
@@ -236,6 +237,7 @@ export function emptyCalibrationSession(): Omit<CalibrationSession, 'id' | 'crea
   return {
     nom: '',
     papier: '',
+    finitionPapier: '',
     developpeur: '',
     agrandisseur: '',
     canalPAP: '',
