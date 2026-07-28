@@ -1306,6 +1306,17 @@ button {
   color: #ff9800;
 }
 
+.calib-offset-input {
+  width: 72px;
+  padding: 5px 6px;
+  text-align: center;
+}
+
+.calib-cell-total {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .calib-check {
   display: flex;
   align-items: flex-start;

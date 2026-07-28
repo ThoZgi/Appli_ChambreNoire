@@ -20,6 +20,7 @@ import {
   checklistComplete,
   computeCorrectionExposition,
   computeIsoR,
+  computeValeurASaisir,
   contrastePlausibility,
   expositionWarnings,
   formatSigned,
@@ -441,7 +442,7 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                       </label>
                     </div>
                     <div className="calib-result">
-                      <span className="muted">Correction à enregistrer (unités)</span>
+                      <span className="muted">Correction calculée (unités)</span>
                       <span className={correction === null ? 'calib-value calib-value-empty' : 'calib-value'}>
                         {correction === null ? '—' : formatSigned(correction)}
                       </span>
@@ -473,6 +474,52 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                 </li>
               </ol>
               <p className="muted">Valider chaque écran avec l'horloge (Print), jamais la croix.</p>
+
+              <p className="muted">
+                Si un grade affiche déjà autre chose que « o 00 », saisissez cette valeur ci-dessous : la colonne de
+                droite donne le total à régler.
+              </p>
+              <div className="calib-table-wrap">
+                <table className="calib-table">
+                  <thead>
+                    <tr>
+                      <th>Grade</th>
+                      <th>Correction calculée</th>
+                      <th>Déjà en mémoire</th>
+                      <th>Valeur à saisir</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CALIBRATION_GRADES.map((grade) => {
+                      const entry = session.grades[grade]
+                      const correction = computeCorrectionExposition(entry)
+                      const total = computeValeurASaisir(entry)
+                      const cumule = total !== null && total !== correction
+                      return (
+                        <tr key={grade}>
+                          <td>
+                            <strong>{grade}</strong>
+                          </td>
+                          <td className="calib-cell-value">{correction === null ? '—' : formatSigned(correction)}</td>
+                          <td>
+                            <input
+                              className="field-input calib-offset-input"
+                              type="number"
+                              step={1}
+                              value={entry.ancienOffset}
+                              onChange={(e) => updateGrade(grade, 'ancienOffset', e.target.value)}
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className={cumule ? 'calib-cell-value calib-cell-total' : 'calib-cell-value'}>
+                            {total === null ? '—' : formatSigned(total)}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
               {manquantsEtape1.length > 0 && (
                 <p className="calib-plaus calib-plaus-warn">
@@ -657,14 +704,21 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                 </thead>
                 <tbody>
                   {CALIBRATION_GRADES.map((grade, i) => {
-                    const correction = computeCorrectionExposition(session.grades[grade])
+                    const entry = session.grades[grade]
+                    const correction = computeCorrectionExposition(entry)
+                    const total = computeValeurASaisir(entry)
                     const isoR = isoRValues[i]
                     return (
                       <tr key={grade}>
                         <td>
                           <strong>{grade}</strong>
                         </td>
-                        <td className="calib-cell-value">{correction === null ? '—' : formatSigned(correction)}</td>
+                        <td className="calib-cell-value">
+                          {total === null ? '—' : formatSigned(total)}
+                          {total !== null && total !== correction && correction !== null && (
+                            <span className="muted"> (dont {formatSigned(correction)} de nouveau)</span>
+                          )}
+                        </td>
                         <td className="calib-cell-value">{isoR === null ? '—' : isoR}</td>
                       </tr>
                     )

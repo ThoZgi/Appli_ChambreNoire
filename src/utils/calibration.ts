@@ -28,6 +28,17 @@ export function computeCorrectionExposition(entry: CalibrationGradeEntry): numbe
   return (ecart ?? 0) * UNITS_PER_CRAN[entry.pas] + (decalage ?? 0) * UNITS_PER_STOP
 }
 
+/**
+ * Valeur réellement à saisir dans la sonde. En mode CAL, l'écran d'un grade peut déjà
+ * afficher une correction mémorisée d'une calibration précédente : il faut alors saisir
+ * l'ancienne PLUS la nouvelle, pas la nouvelle seule.
+ */
+export function computeValeurASaisir(entry: CalibrationGradeEntry): number | null {
+  const correction = computeCorrectionExposition(entry)
+  if (correction === null) return null
+  return correction + (parseNumber(entry.ancienOffset) ?? 0)
+}
+
 export function computeIsoR(entry: CalibrationGradeEntry): number | null {
   const ombre = parseNumber(entry.stepOmbre)
   const lumiere = parseNumber(entry.stepLumiere)

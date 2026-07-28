@@ -198,6 +198,8 @@ export interface CalibrationGradeEntry {
   pas: CalibrationPas
   ecart: string
   decalage: string
+  /** Correction déjà mémorisée dans la sonde, à additionner à la nouvelle. */
+  ancienOffset: string
   stepOmbre: string
   stepLumiere: string
 }
@@ -224,7 +226,7 @@ export interface CalibrationSession {
 }
 
 export function emptyCalibrationGradeEntry(): CalibrationGradeEntry {
-  return { pas: '1/4', ecart: '', decalage: '', stepOmbre: '', stepLumiere: '' }
+  return { pas: '1/4', ecart: '', decalage: '', ancienOffset: '', stepOmbre: '', stepLumiere: '' }
 }
 
 export function emptyCalibrationGrades(): Record<CalibrationGrade, CalibrationGradeEntry> {
