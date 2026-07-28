@@ -92,14 +92,21 @@ export function formatStopMultiple(unitStops: number, count: number, sign: StopS
   return compose(multiplicative, simplified, sign, false)
 }
 
-/** Même chose lorsque seule la valeur totale est connue : l'unité est déduite de la fraction. */
-export function describeStops(stops: number, sign: StopSign = ''): StopExpression {
-  const { count, denominator } = toStopFraction(stops)
-  const simplified = formatStops(stops)
-  if (stops === 0) return compose('0', '0', sign, true)
-  if (denominator === 1 || count === 1) return compose(simplified, simplified, sign, false)
-  return compose(`${count} × 1/${denominator}`, simplified, sign, false)
-}
+/**
+ * Toutes les valeurs proposables pour une zone de dodge & burn, en forme réduite.
+ * Granularité fine jusqu'à 1 stop (douzièmes et huitièmes), plus grossière au-delà :
+ * une correction de plus d'un stop ne se règle pas au douzième près.
+ */
+export const STOP_CHOICES: { value: number; label: string }[] = (() => {
+  const values = new Set<number>()
+  for (const denominator of [12, 8]) {
+    for (let n = 1; n <= denominator; n++) values.add(n / denominator)
+  }
+  for (const v of [5 / 4, 4 / 3, 3 / 2, 5 / 3, 7 / 4, 2, 5 / 2, 3]) values.add(v)
+  return [...values]
+    .sort((a, b) => a - b)
+    .map((value) => ({ value, label: formatStops(value) }))
+})()
 
 export function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
   const base = parseFloat(tempsDepart) || 0

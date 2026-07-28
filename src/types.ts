@@ -52,9 +52,6 @@ export interface DodgeBurnZone {
   type: DodgeBurnType
   /** Valeur décimale, à usage interne uniquement (calcul des secondes) — jamais affichée telle quelle. */
   stops: number
-  /** Unité et multiplicateur choisis, conservés pour afficher "2 × 1/4" plutôt que "1/2". */
-  stopUnit?: number
-  stopCount?: number
   path: { x: number; y: number }[]
   brushSize: number
   grade?: string

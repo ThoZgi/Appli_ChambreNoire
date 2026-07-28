@@ -1,21 +1,9 @@
 import type { DodgeBurnType, DodgeBurnZone } from '../types'
-import { describeStops, formatStopMultiple, type StopExpression, type StopSign } from './stops'
+import { formatStops } from './stops'
 
 interface ZoneStops {
   type: DodgeBurnType
   stops: number
-  stopUnit?: number
-  stopCount?: number
-}
-
-/**
- * Expression en stops d'une zone. L'unité choisie à la création est réutilisée si elle a été
- * enregistrée, pour garder "2 × 1/4" au lieu de le réduire en "1/2" ; sinon elle est déduite.
- */
-export function zoneStopExpression(zone: ZoneStops, sign: StopSign = ''): StopExpression {
-  return zone.stopUnit && zone.stopCount
-    ? formatStopMultiple(zone.stopUnit, zone.stopCount, sign)
-    : describeStops(zone.stops, sign)
 }
 
 export function computeZoneSeconds(tempsBase: string, stops: number): number | null {
@@ -42,7 +30,7 @@ export function zoneActionLabel(zone: DodgeBurnZone, tempsBase: string, index: n
   const seconds = computeZoneSeconds(tempsBase, zone.stops)
   const zoneName = zone.label || `zone ${index + 1}`
   const formatAmount = zone.type === 'dodge' ? formatSeconds : formatSecondsPrecise
-  const stopsText = zoneStopExpression(zone).full
+  const stopsText = `${formatStops(zone.stops)} stop`
   const amount = seconds !== null ? `${stopsText} → ${formatAmount(seconds)}` : `${stopsText} (temps à définir)`
   const gradeSuffix = zone.grade && zone.grade !== passGrade ? ` (grade ${zone.grade})` : ''
   if (zone.type === 'dodge') {
@@ -64,8 +52,8 @@ export function drawZoneLabel(
   const x = cx * canvas.width
   const y = cy * canvas.height
 
-  // Forme multiplicative ("−2 × 1/4"), jamais la décimale ni les secondes.
-  const label = zoneStopExpression(zone, zone.type === 'dodge' ? '-' : '+').multiplicative
+  // Forme réduite ("-1/2"), jamais la décimale ni les secondes : l'étiquette doit rester lisible d'un coup d'œil.
+  const label = `${zone.type === 'dodge' ? '-' : '+'}${formatStops(zone.stops)}`
   const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
 
   const fontSize = canvas.width * 0.025
