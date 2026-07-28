@@ -676,6 +676,11 @@ button {
   color: #fff;
 }
 
+.stops-group-label {
+  flex: 0 0 auto;
+  min-width: 128px;
+}
+
 .stops-custom {
   width: 64px;
 }

@@ -435,6 +435,9 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
                       circuits={tirage.circuits}
                       onCircuitsChange={(circuits) => updateField('circuits', circuits)}
                       tempsBase={tirage.exposition.tempsBase}
+                      incrementStops={
+                        tirage.methodeExposition === 'bandeTest' ? tirage.bandeTest.incrementStops : undefined
+                      }
                       defaultGrade={tirage.exposition.filtreContraste}
                     />
                   </section>

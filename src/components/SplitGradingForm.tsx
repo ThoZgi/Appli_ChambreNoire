@@ -66,6 +66,7 @@ export default function SplitGradingForm({ value, onChange, printImageBlob, base
             circuits={strip.circuits}
             onCircuitsChange={(circuits) => updateCircuits(key, circuits)}
             tempsBase={strip.tempsExposition}
+            incrementStops={strip.localizedBandeTests[0]?.bandeTest.incrementStops}
             gradeEnabled
             defaultGrade={strip.grade}
           />

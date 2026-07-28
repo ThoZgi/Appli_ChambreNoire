@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CircuitTrace, DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
-import { STOP_CHOICES } from '../utils/stops'
+import { STOP_CHOICE_GROUPS, formatStops, stopMultiplesOf } from '../utils/stops'
 import { FILTER_GRADE_PRESETS } from '../utils/formats'
 import { baseExpositionLabel, renderCircuitsOnCanvas, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
 import NumberStepper from './NumberStepper'
@@ -14,6 +14,8 @@ interface DodgeBurnCanvasProps {
   circuits: CircuitTrace[]
   onCircuitsChange: (circuits: CircuitTrace[]) => void
   tempsBase: string
+  /** Intervalle de la bandelette test dont on part : ses multiples sont proposés en premier. */
+  incrementStops?: number
   gradeEnabled?: boolean
   defaultGrade?: string
 }
@@ -36,6 +38,7 @@ export default function DodgeBurnCanvas({
   circuits,
   onCircuitsChange,
   tempsBase,
+  incrementStops,
   gradeEnabled,
   defaultGrade,
 }: DodgeBurnCanvasProps) {
@@ -47,6 +50,9 @@ export default function DodgeBurnCanvas({
   const [mode, setMode] = useState<DodgeBurnType>('dodge')
   const [tool, setTool] = useState<'brush' | 'circuit'>('brush')
   const [stops, setStops] = useState(0.25)
+  const [showAllStops, setShowAllStops] = useState(false)
+  const multiples = stopMultiplesOf(incrementStops ?? 0)
+  const isCurrent = (value: number) => Math.abs(stops - value) < 0.0005
   const [brushSize, setBrushSize] = useState(0.03)
   const [grade, setGrade] = useState(defaultGrade ?? '')
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[] | null>(null)
@@ -322,20 +328,49 @@ export default function DodgeBurnCanvas({
           </div>
         )}
 
-        <div className="stops-row">
-          <span className="field-label-inline">Valeur :</span>
-          {STOP_CHOICES.map((choice) => (
-            <button
-              key={choice.value}
-              type="button"
-              className={Math.abs(stops - choice.value) < 0.0005 ? 'chip chip-active' : 'chip'}
-              onClick={() => setStops(choice.value)}
-            >
-              {choice.label}
+        {multiples.length > 0 && (
+          <div className="stops-row">
+            <span className="field-label-inline stops-group-label">
+              Bande test ({formatStops(incrementStops!)})
+            </span>
+            {multiples.map((choice) => (
+              <button
+                key={choice.value}
+                type="button"
+                className={isCurrent(choice.value) ? 'chip chip-active' : 'chip'}
+                onClick={() => setStops(choice.value)}
+              >
+                {choice.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {multiples.length > 0 && (
+          <div className="stops-row">
+            <span className="stops-group-label" />
+            <button type="button" className="btn-link" onClick={() => setShowAllStops((v) => !v)}>
+              {showAllStops ? 'Masquer les autres valeurs' : 'Autres valeurs…'}
             </button>
+          </div>
+        )}
+
+        {(showAllStops || multiples.length === 0) &&
+          STOP_CHOICE_GROUPS.map((group) => (
+            <div key={group.label} className="stops-row">
+              <span className="field-label-inline stops-group-label">{group.label}</span>
+              {group.choices.map((choice) => (
+                <button
+                  key={choice.value}
+                  type="button"
+                  className={isCurrent(choice.value) ? 'chip chip-active' : 'chip'}
+                  onClick={() => setStops(choice.value)}
+                >
+                  {choice.label}
+                </button>
+              ))}
+            </div>
           ))}
-          <span className="muted">stop</span>
-        </div>
 
         {tool === 'circuit' ? (
           <div className="stops-row">
