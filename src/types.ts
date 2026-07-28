@@ -212,6 +212,7 @@ export interface CalibrationSession {
   finitionPapier: string
   developpeur: string
   agrandisseur: string
+  nombreCanauxPAP: number
   canalPAP: string
   sourceLumiere: CalibrationSource
   checklist: Record<string, boolean>
@@ -240,6 +241,7 @@ export function emptyCalibrationSession(): Omit<CalibrationSession, 'id' | 'crea
     finitionPapier: '',
     developpeur: '',
     agrandisseur: '',
+    nombreCanauxPAP: 3,
     canalPAP: '',
     sourceLumiere: 'halogene',
     checklist: {},

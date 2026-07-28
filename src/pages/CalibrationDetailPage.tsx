@@ -9,6 +9,7 @@ import type {
 } from '../types'
 import { CALIBRATION_GRADES } from '../types'
 import SelectOrCustom from '../components/SelectOrCustom'
+import NumberStepper from '../components/NumberStepper'
 import { ENLARGER_PRESETS } from '../utils/equipmentPresets'
 import { PAPER_DEVELOPER_PRESETS } from '../utils/presets'
 import { PAPER_FINISH_PRESETS, PAPER_STOCK_PRESETS } from '../utils/paperPresets'
@@ -124,6 +125,7 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
   const trend = isoRTrend(isoRValues)
   const prete = checklistComplete(session.checklist)
   const mesureGuidance = mesureInitialeGuidance(session.tempsMesureInitial)
+  const canauxPAP = Array.from({ length: session.nombreCanauxPAP }, (_, i) => String(i + 1))
   const manquantsEtape1 = gradesSansCorrection(session.grades)
   const manquantsEtape2 = gradesSansIsoR(session.grades)
 
@@ -237,15 +239,34 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   />
                 </label>
                 <label className="field-label">
-                  Canal PAP calibré
-                  <input
-                    className="field-input"
-                    value={session.canalPAP}
-                    onChange={(e) => updateField('canalPAP', e.target.value)}
-                    placeholder="ex : PAP 1"
+                  Canaux papier de la sonde
+                  <NumberStepper
+                    value={session.nombreCanauxPAP}
+                    min={1}
+                    max={12}
+                    onChange={(v) => updateField('nombreCanauxPAP', v)}
                   />
                 </label>
               </div>
+              <div className="stops-row">
+                <span className="field-label-inline">Canal PAP calibré :</span>
+                {canauxPAP.map((canal) => (
+                  <button
+                    key={canal}
+                    type="button"
+                    className={session.canalPAP === canal ? 'chip chip-active' : 'chip'}
+                    onClick={() => updateField('canalPAP', session.canalPAP === canal ? '' : canal)}
+                  >
+                    PAP {canal}
+                  </button>
+                ))}
+              </div>
+              {!session.canalPAP && (
+                <p className="calib-plaus calib-plaus-warn">
+                  ⚠ Sans canal renseigné, vous ne saurez pas où reporter les valeurs — et la sonde revient sur PAP 1 en
+                  sortant du mode CAL.
+                </p>
+              )}
               <div className="stops-row">
                 <span className="field-label-inline">Source lumineuse :</span>
                 {SOURCES.map((source) => (
@@ -445,8 +466,10 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                 </li>
                 <li>Régler la valeur du grade 00, avancer au grade 0, et ainsi de suite jusqu'au grade 5.</li>
                 <li>
-                  Sortir du mode CAL. ⚠ La sonde revient sur PAP 1 par défaut : re-sélectionner le canal calibré si ce
-                  n'est pas celui-là.
+                  Sortir du mode CAL. ⚠ La sonde revient sur PAP 1 par défaut :{' '}
+                  {session.canalPAP && session.canalPAP !== '1'
+                    ? `re-sélectionner PAP ${session.canalPAP}.`
+                    : "re-sélectionner le canal calibré si ce n'est pas celui-là."}
                 </li>
               </ol>
               <p className="muted">Valider chaque écran avec l'horloge (Print), jamais la croix.</p>
@@ -580,7 +603,10 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                 <ol className="calib-steps">
                   <li>Mode CAL, passer l'écran « off » des offsets jusqu'à l'écran « cont » (valeur par défaut « o 179 »).</li>
                   <li>Saisir grade par grade, de 00 à 5.</li>
-                  <li>Sortir du mode CAL, puis re-sélectionner le canal PAP calibré.</li>
+                  <li>
+                    Sortir du mode CAL, puis re-sélectionner{' '}
+                    {session.canalPAP ? `PAP ${session.canalPAP}` : 'le canal PAP calibré'}.
+                  </li>
                 </ol>
                 {manquantsEtape2.length > 0 && (
                   <p className="calib-plaus calib-plaus-warn">
@@ -615,8 +641,10 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
           <section className="card">
             <h2>Valeurs à reporter dans la sonde</h2>
             <p className="muted">
-              Mode CAL → horloge (Print) pour valider chaque écran, jamais la croix. Vérifiez le canal PAP avant et
-              après.
+              Mode CAL → horloge (Print) pour valider chaque écran, jamais la croix.{' '}
+              {session.canalPAP
+                ? `Vérifiez que la sonde est bien sur PAP ${session.canalPAP} avant et après.`
+                : 'Vérifiez le canal PAP avant et après.'}
             </p>
             <div className="calib-table-wrap">
               <table className="calib-table">
