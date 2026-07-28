@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CircuitTrace, DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
-import { STOP_PRESETS } from '../utils/stops'
+import { formatStopMultiple } from '../utils/stops'
 import { FILTER_GRADE_PRESETS } from '../utils/formats'
 import { baseExpositionLabel, renderCircuitsOnCanvas, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
 import NumberStepper from './NumberStepper'
 import SelectOrCustom from './SelectOrCustom'
+import StopUnitPicker from './StopUnitPicker'
 
 interface DodgeBurnCanvasProps {
   photoBlob: Blob
@@ -46,7 +47,10 @@ export default function DodgeBurnCanvas({
 
   const [mode, setMode] = useState<DodgeBurnType>('dodge')
   const [tool, setTool] = useState<'brush' | 'circuit'>('brush')
-  const [stops, setStops] = useState(0.25)
+  const [stopUnit, setStopUnit] = useState(0.25)
+  const [stopCount, setStopCount] = useState(1)
+  const stops = stopUnit * stopCount
+  const stopExpression = formatStopMultiple(stopUnit, stopCount, mode === 'dodge' ? '-' : '+')
   const [brushSize, setBrushSize] = useState(0.03)
   const [grade, setGrade] = useState(defaultGrade ?? '')
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[] | null>(null)
@@ -125,6 +129,8 @@ export default function DodgeBurnCanvas({
       id: crypto.randomUUID(),
       type: mode,
       stops,
+      stopUnit,
+      stopCount,
       path,
       brushSize,
       grade: gradeEnabled && grade ? grade : undefined,
@@ -323,19 +329,14 @@ export default function DodgeBurnCanvas({
         )}
 
         <div className="stops-row">
-          <span className="field-label-inline">Valeur :</span>
-          {STOP_PRESETS.map((preset) => (
-            <button
-              key={preset.value}
-              type="button"
-              className={stops === preset.value ? 'chip chip-active' : 'chip'}
-              onClick={() => setStops(preset.value)}
-            >
-              {preset.label}
-            </button>
-          ))}
-          <NumberStepper min={0.05} step={0.05} value={stops} onChange={setStops} />
-          <span className="muted">stop(s)</span>
+          <span className="field-label-inline">Unité :</span>
+          <StopUnitPicker value={stopUnit} onChange={setStopUnit} />
+        </div>
+
+        <div className="stops-row">
+          <span className="field-label-inline">Nombre :</span>
+          <NumberStepper min={1} max={24} step={1} value={stopCount} onChange={setStopCount} />
+          <span className="calib-value">{stopExpression.full}</span>
         </div>
 
         {tool === 'circuit' ? (

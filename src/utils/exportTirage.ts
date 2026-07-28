@@ -3,7 +3,7 @@ import type { ChimieStock, DodgeBurnZone, Tirage, TypeEclairage } from '../types
 import { baseExpositionLabel, zoneActionLabel } from './dodgeBurnRender'
 import { renderAnnotatedPrintImage } from './annotatedPrintImage'
 import { slugify } from './slug'
-import { formatStops } from './stops'
+import { formatStopMultiple, formatStops } from './stops'
 
 const MARGIN = 15
 const FOOTER_ZONE = 12
@@ -251,7 +251,7 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
     drawSectionTitle('Bande test')
     drawKeyValueGrid([
       ['Temps de départ', bt.tempsDepart],
-      ['Incrément (stops)', formatStops(bt.incrementStops)],
+      ['Incrément', `${formatStops(bt.incrementStops)} stop / palier`],
     ])
     const paliers = bt.steps.map((step, i) => ({ step, i })).filter(({ step }) => step.note || step.selected)
     if (paliers.length > 0) {
@@ -259,7 +259,8 @@ export async function exportTirageToPdf(tirage: Tirage, chimieStocks: ChimieStoc
       doc.setFontSize(9.5)
       doc.setTextColor(...INK)
       paliers.forEach(({ step, i }) => {
-        const text = `${i + 1}.${step.selected ? ' (choisi)' : ''} ${step.note}`
+        const stopsText = formatStopMultiple(bt.incrementStops, i, '+').full
+        const text = `${i + 1}. ${stopsText}${step.selected ? ' (choisi)' : ''}${step.note ? ` — ${step.note}` : ''}`
         const lines = doc.splitTextToSize(text, contentWidth - 4) as string[]
         ensureSpace(lines.length * 4.6 + 1)
         lines.forEach((line, li) => doc.text(line, MARGIN + 2, y + li * 4.6))

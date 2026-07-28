@@ -1,8 +1,9 @@
 import type { BandeTest } from '../types'
-import { STOP_PRESETS, computeStepTime, formatStops } from '../utils/stops'
+import { computeStepTime, formatStopMultiple } from '../utils/stops'
 import { APERTURE_PRESETS } from '../utils/formats'
 import NumberStepper from './NumberStepper'
 import SelectOrCustom from './SelectOrCustom'
+import StopUnitPicker from './StopUnitPicker'
 
 interface BandeTestFormProps {
   value: BandeTest
@@ -83,18 +84,8 @@ export default function BandeTestForm({
 
       <div className="stops-row">
         <span className="field-label-inline">Incrément :</span>
-        {STOP_PRESETS.map((preset) => (
-          <button
-            key={preset.value}
-            type="button"
-            className={value.incrementStops === preset.value ? 'chip chip-active' : 'chip'}
-            onClick={() => setIncrement(preset.value)}
-          >
-            {preset.label}
-          </button>
-        ))}
-        <NumberStepper min={0.01} step={0.01} value={value.incrementStops} onChange={setIncrement} />
-        <span className="muted">stop(s) / palier</span>
+        <StopUnitPicker value={value.incrementStops} onChange={setIncrement} />
+        <span className="muted">stop / palier</span>
       </div>
 
       <ul className="teststrip-list">
@@ -106,7 +97,7 @@ export default function BandeTestForm({
               className={step.selected ? 'teststrip-item teststrip-item-selected' : 'teststrip-item'}
             >
               <span className="teststrip-index">Palier {index + 1}</span>
-              <span className="teststrip-stops">+{formatStops(index * value.incrementStops)} stop</span>
+              <span className="teststrip-stops">{formatStopMultiple(value.incrementStops, index, '+').full}</span>
               <span className="teststrip-time">{time.toFixed(2)} s</span>
               <input
                 className="field-input teststrip-note"

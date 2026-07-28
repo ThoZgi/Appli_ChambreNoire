@@ -1,5 +1,22 @@
 import type { DodgeBurnType, DodgeBurnZone } from '../types'
-import { formatStops } from './stops'
+import { describeStops, formatStopMultiple, type StopExpression, type StopSign } from './stops'
+
+interface ZoneStops {
+  type: DodgeBurnType
+  stops: number
+  stopUnit?: number
+  stopCount?: number
+}
+
+/**
+ * Expression en stops d'une zone. L'unité choisie à la création est réutilisée si elle a été
+ * enregistrée, pour garder "2 × 1/4" au lieu de le réduire en "1/2" ; sinon elle est déduite.
+ */
+export function zoneStopExpression(zone: ZoneStops, sign: StopSign = ''): StopExpression {
+  return zone.stopUnit && zone.stopCount
+    ? formatStopMultiple(zone.stopUnit, zone.stopCount, sign)
+    : describeStops(zone.stops, sign)
+}
 
 export function computeZoneSeconds(tempsBase: string, stops: number): number | null {
   const base = parseFloat(tempsBase)
@@ -25,20 +42,21 @@ export function zoneActionLabel(zone: DodgeBurnZone, tempsBase: string, index: n
   const seconds = computeZoneSeconds(tempsBase, zone.stops)
   const zoneName = zone.label || `zone ${index + 1}`
   const formatAmount = zone.type === 'dodge' ? formatSeconds : formatSecondsPrecise
-  const amount = seconds !== null ? formatAmount(seconds) : `${formatStops(zone.stops)} stop (temps à définir)`
+  const stopsText = zoneStopExpression(zone).full
+  const amount = seconds !== null ? `${stopsText} → ${formatAmount(seconds)}` : `${stopsText} (temps à définir)`
   const gradeSuffix = zone.grade && zone.grade !== passGrade ? ` (grade ${zone.grade})` : ''
   if (zone.type === 'dodge') {
     const passages =
       zone.nombrePassages && zone.nombrePassages > 1 ? `, réparties en ${zone.nombrePassages} passages` : ''
-    return `Retenir "${zoneName}" pendant ${amount}${passages}${gradeSuffix}`
+    return `Retenir "${zoneName}" de ${amount}${passages}${gradeSuffix}`
   }
-  return `Revenir sur "${zoneName}", relancer pour ${amount}${gradeSuffix}`
+  return `Revenir sur "${zoneName}", relancer de ${amount}${gradeSuffix}`
 }
 
 export function drawZoneLabel(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
-  zone: { type: DodgeBurnType; stops: number; path: { x: number; y: number }[] },
+  zone: ZoneStops & { path: { x: number; y: number }[] },
 ) {
   if (zone.path.length === 0) return
   const cx = zone.path.reduce((sum, p) => sum + p.x, 0) / zone.path.length
@@ -46,7 +64,8 @@ export function drawZoneLabel(
   const x = cx * canvas.width
   const y = cy * canvas.height
 
-  const label = `${zone.type === 'dodge' ? '-' : '+'}${formatStops(zone.stops)}`
+  // Forme multiplicative ("−2 × 1/4"), jamais la décimale ni les secondes.
+  const label = zoneStopExpression(zone, zone.type === 'dodge' ? '-' : '+').multiplicative
   const color = zone.type === 'dodge' ? '80, 160, 255' : '255, 120, 40'
 
   const fontSize = canvas.width * 0.025
@@ -104,7 +123,7 @@ function drawArrowhead(
 export function renderZonesOnCanvas(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
-  zones: { id: string; type: DodgeBurnType; stops: number; path: { x: number; y: number }[]; brushSize: number }[],
+  zones: (ZoneStops & { id: string; path: { x: number; y: number }[]; brushSize: number })[],
   activeId?: string | null,
 ) {
   for (const zone of zones) {
