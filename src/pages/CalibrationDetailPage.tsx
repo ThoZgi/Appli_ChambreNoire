@@ -476,8 +476,9 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
               <p className="muted">Valider chaque écran avec l'horloge (Print), jamais la croix.</p>
 
               <p className="muted">
-                Si un grade affiche déjà autre chose que « o 00 », saisissez cette valeur ci-dessous : la colonne de
-                droite donne le total à régler.
+                Sur un canal jamais calibré, tous les grades affichent « o 00 » : laissez la colonne « Déjà en
+                mémoire » vide, la valeur à saisir est simplement votre correction. Si un grade affiche autre chose,
+                c'est une correction d'une calibration précédente — saisissez-la pour obtenir le total à régler.
               </p>
               <div className="calib-table-wrap">
                 <table className="calib-table">
@@ -655,6 +656,11 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                     {session.canalPAP ? `PAP ${session.canalPAP}` : 'le canal PAP calibré'}.
                   </li>
                 </ol>
+                <Reminders
+                  items={[
+                    "Les valeurs déjà présentes ici (« o 179 » par défaut) sont les réglages d'usine, pas le résultat d'une calibration précédente : on les REMPLACE par l'ISO(R) mesuré. Contrairement à l'étape 1, on n'additionne rien.",
+                  ]}
+                />
                 {manquantsEtape2.length > 0 && (
                   <p className="calib-plaus calib-plaus-warn">
                     ⚠ Grades sans ISO(R) saisi : {manquantsEtape2.join(', ')}.
