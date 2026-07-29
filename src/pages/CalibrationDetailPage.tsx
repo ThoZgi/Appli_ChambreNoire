@@ -7,7 +7,7 @@ import type {
   CalibrationSession,
   CalibrationSource,
 } from '../types'
-import { CALIBRATION_GRADES } from '../types'
+import { CALIBRATION_GRADES, CALIBRATION_PAS_PAR_GRADE } from '../types'
 import SelectOrCustom from '../components/SelectOrCustom'
 import NumberStepper from '../components/NumberStepper'
 import { ENLARGER_PRESETS } from '../utils/equipmentPresets'
@@ -28,6 +28,8 @@ import {
   gradesSansIsoR,
   isoRTrend,
   mesureInitialeGuidance,
+  pasHint,
+  pressesForOneStop,
 } from '../utils/calibration'
 
 interface CalibrationDetailPageProps {
@@ -326,7 +328,10 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
               <ol className="calib-steps">
                 <li>Retirer tout négatif de l'agrandisseur (test à blanc).</li>
                 <li>Monter la tête au maximum de la colonne, fermer l'objectif à son ouverture minimale.</li>
-                <li>Régler la sonde sur un pas de 1/4 stop.</li>
+                <li>
+                  Régler la sonde sur un pas de 1/4 stop pour la mesure. Le pas des bandes test se règle ensuite grade
+                  par grade à l'étape 1 : le manuel conseille 1/4 pour 00, 0 et 1, 1/6 pour 2 et 3, et 1/12 pour 4 et 5.
+                </li>
                 <li>Sans filtre, prendre une mesure au centre du plateau et relever le temps proposé.</li>
               </ol>
               <label className="field-label">
@@ -376,6 +381,7 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   "Ne plus toucher à l'ouverture, à la hauteur de tête ni au bouton X : le réglage d'exposition reste celui de la mise en place.",
                   'Bande trop sombre → correction négative. Bande trop claire → correction positive.',
                   'Les demi-grades sont interpolés automatiquement par la sonde : ne rien saisir pour eux.',
+                  "Le pas est propre à chaque grade et entre dans le calcul : une bande d'écart vaut 3 unités au pas 1/4, 2 au pas 1/6, 1 au pas 1/12. Saisir le pas réellement utilisé pour la bande.",
                 ]}
               />
               <div className="calib-formula">correction = écart × unités/cran + décalage × 12</div>
@@ -396,11 +402,15 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                       <strong>Grade {grade}</strong>
                       {grade === '4' && (
                         <span className="calib-note">
-                          Avant cette bande : réduire l'exposition d'un stop entier (4 fois « − » au pas 1/4)
+                          Filtres standards (au-dessus ou au-dessous de l'objectif) : réduire l'exposition d'un stop
+                          entier avant cette bande — {pressesForOneStop(entry.pas)} fois « − » au pas {entry.pas}. Sans
+                          objet sur une tête dichroïque.
                         </span>
                       )}
                       {grade === '5' && (
-                        <span className="calib-note">Conserver tel quel le réglage réduit du grade 4</span>
+                        <span className="calib-note">
+                          Si le grade 4 a été réduit d'un stop, conserver ce réglage tel quel
+                        </span>
                       )}
                     </div>
                     <div className="field-row">
@@ -417,6 +427,12 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                             </option>
                           ))}
                         </select>
+                        <span className="muted">{pasHint(entry.pas)}</span>
+                        {entry.pas !== CALIBRATION_PAS_PAR_GRADE[grade] && (
+                          <span className="calib-note">
+                            Le manuel conseille {CALIBRATION_PAS_PAR_GRADE[grade]} pour ce grade
+                          </span>
+                        )}
                       </label>
                       <label className="field-label">
                         Bandes d'écart (+ clair / − sombre)

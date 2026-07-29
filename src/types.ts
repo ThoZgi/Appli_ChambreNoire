@@ -226,12 +226,33 @@ export interface CalibrationSession {
   notes: string
 }
 
-export function emptyCalibrationGradeEntry(): CalibrationGradeEntry {
-  return { pas: '1/4', ecart: '', decalage: '', ancienOffset: '', stepOmbre: '', stepLumiere: '' }
+/**
+ * Pas conseillés par le manuel RH Designs : plus le grade est dur, plus la bande doit être fine,
+ * parce qu'un grade dur réagit beaucoup plus vite à une variation d'exposition.
+ */
+export const CALIBRATION_PAS_PAR_GRADE: Record<CalibrationGrade, CalibrationPas> = {
+  '00': '1/4',
+  '0': '1/4',
+  '1': '1/4',
+  '2': '1/6',
+  '3': '1/6',
+  '4': '1/12',
+  '5': '1/12',
+}
+
+export function emptyCalibrationGradeEntry(grade?: CalibrationGrade): CalibrationGradeEntry {
+  return {
+    pas: grade ? CALIBRATION_PAS_PAR_GRADE[grade] : '1/4',
+    ecart: '',
+    decalage: '',
+    ancienOffset: '',
+    stepOmbre: '',
+    stepLumiere: '',
+  }
 }
 
 export function emptyCalibrationGrades(): Record<CalibrationGrade, CalibrationGradeEntry> {
-  return Object.fromEntries(CALIBRATION_GRADES.map((g) => [g, emptyCalibrationGradeEntry()])) as Record<
+  return Object.fromEntries(CALIBRATION_GRADES.map((g) => [g, emptyCalibrationGradeEntry(g)])) as Record<
     CalibrationGrade,
     CalibrationGradeEntry
   >

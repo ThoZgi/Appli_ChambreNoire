@@ -181,7 +181,7 @@ function normalizeCalibration(session: CalibrationSession): CalibrationSession {
     // Anciennes sessions : le canal était un texte libre ("PAP 2", "canal 2"), il devient un choix numéroté.
     canalPAP: (session.canalPAP ?? '').replace(/\D/g, ''),
     grades: Object.fromEntries(
-      CALIBRATION_GRADES.map((g) => [g, { ...emptyCalibrationGradeEntry(), ...grades[g] }]),
+      CALIBRATION_GRADES.map((g) => [g, { ...emptyCalibrationGradeEntry(g), ...grades[g] }]),
     ) as CalibrationSession['grades'],
   }
 }

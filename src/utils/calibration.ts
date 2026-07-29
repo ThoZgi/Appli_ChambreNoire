@@ -7,6 +7,25 @@ const ISO_R_PER_STEP = 15
 
 export const CALIBRATION_PAS_OPTIONS: CalibrationPas[] = ['1/4', '1/6', '1/12']
 
+/** Unités de correction que vaut une bande d'écart, pour le pas donné. 12 unités = 1 stop. */
+export function unitsPerCran(pas: CalibrationPas): number {
+  return UNITS_PER_CRAN[pas]
+}
+
+/** Nombre d'appuis sur « − » ou « + » pour un stop entier, au pas donné (12 unités = 1 stop). */
+export function pressesForOneStop(pas: CalibrationPas): number {
+  return UNITS_PER_STOP / UNITS_PER_CRAN[pas]
+}
+
+/**
+ * Rappel de ce que le pas implique dans le calcul : il fixe la valeur d'une bande d'écart,
+ * donc aussi la correction maximale atteignable sur une bande de 7 expositions (±3 bandes).
+ */
+export function pasHint(pas: CalibrationPas): string {
+  const u = UNITS_PER_CRAN[pas]
+  return `1 bande = ${u} unité${u > 1 ? 's' : ''} — au plus ±${u * 3} unités sur une bande de 7`
+}
+
 const SOFT_GRADES: CalibrationGrade[] = ['00', '0', '1']
 const HARD_GRADES: CalibrationGrade[] = ['4', '5']
 
