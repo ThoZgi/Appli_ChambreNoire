@@ -1,4 +1,10 @@
-import type { CalibrationGrade, CalibrationGradeEntry, CalibrationPas, CalibrationSource } from '../types'
+import type {
+  CalibrationFiltration,
+  CalibrationGrade,
+  CalibrationGradeEntry,
+  CalibrationPas,
+  CalibrationSource,
+} from '../types'
 import { CALIBRATION_GRADES } from '../types'
 
 const UNITS_PER_CRAN: Record<CalibrationPas, number> = { '1/4': 3, '1/6': 2, '1/12': 1 }
@@ -120,6 +126,11 @@ export const CALIBRATION_CHECKLIST: { id: string; label: string }[] = [
       'Une session complète disponible : toute la calibration doit se faire en une seule fois (même hauteur de tête, même ouverture, mêmes chimies)',
   },
 ]
+
+export const CALIBRATION_FILTRATION_LABELS: Record<CalibrationFiltration, string> = {
+  filtres_standards: 'Filtres standards',
+  tete_dichroique: 'Tête dichroïque',
+}
 
 export const CALIBRATION_SOURCE_LABELS: Record<CalibrationSource, string> = {
   halogene: 'Halogène',

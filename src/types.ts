@@ -207,6 +207,12 @@ export interface CalibrationGradeEntry {
 
 export type CalibrationSource = 'halogene' | 'led_froide' | 'autre'
 
+/**
+ * Mode de filtration. Détermine si les grades 4 et 5 exigent la réduction d'un stop :
+ * elle ne concerne que les jeux de filtres standards, pas une tête dichroïque.
+ */
+export type CalibrationFiltration = 'filtres_standards' | 'tete_dichroique'
+
 export interface CalibrationSession {
   id: string
   createdAt: number
@@ -218,6 +224,7 @@ export interface CalibrationSession {
   nombreCanauxPAP: number
   canalPAP: string
   sourceLumiere: CalibrationSource
+  typeFiltration: CalibrationFiltration
   checklist: Record<string, boolean>
   tempsMesureInitial: string
   grades: Record<CalibrationGrade, CalibrationGradeEntry>
@@ -268,6 +275,7 @@ export function emptyCalibrationSession(): Omit<CalibrationSession, 'id' | 'crea
     nombreCanauxPAP: 3,
     canalPAP: '',
     sourceLumiere: 'halogene',
+    typeFiltration: 'filtres_standards',
     checklist: {},
     tempsMesureInitial: '',
     grades: emptyCalibrationGrades(),

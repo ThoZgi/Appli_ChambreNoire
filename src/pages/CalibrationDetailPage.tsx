@@ -5,6 +5,7 @@ import type {
   CalibrationGradeEntry,
   CalibrationPas,
   CalibrationSession,
+  CalibrationFiltration,
   CalibrationSource,
 } from '../types'
 import { CALIBRATION_GRADES, CALIBRATION_PAS_PAR_GRADE } from '../types'
@@ -15,6 +16,7 @@ import { PAPER_DEVELOPER_PRESETS } from '../utils/presets'
 import { PAPER_FINISH_PRESETS, PAPER_STOCK_PRESETS } from '../utils/paperPresets'
 import {
   CALIBRATION_CHECKLIST,
+  CALIBRATION_FILTRATION_LABELS,
   CALIBRATION_PAS_OPTIONS,
   CALIBRATION_SOURCE_LABELS,
   checklistComplete,
@@ -42,6 +44,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved'
 type Etape = 'preparation' | 'exposition' | 'contraste' | 'recap'
 
 const SOURCES: CalibrationSource[] = ['halogene', 'led_froide', 'autre']
+const FILTRATIONS: CalibrationFiltration[] = ['filtres_standards', 'tete_dichroique']
 
 function Reminders({ items }: { items: string[] }) {
   return (
@@ -283,6 +286,24 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   </button>
                 ))}
               </div>
+              <div className="stops-row">
+                <span className="field-label-inline">Filtration :</span>
+                {FILTRATIONS.map((filtration) => (
+                  <button
+                    key={filtration}
+                    type="button"
+                    className={session.typeFiltration === filtration ? 'chip chip-active' : 'chip'}
+                    onClick={() => updateField('typeFiltration', filtration)}
+                  >
+                    {CALIBRATION_FILTRATION_LABELS[filtration]}
+                  </button>
+                ))}
+              </div>
+              <p className="muted">
+                {session.typeFiltration === 'filtres_standards'
+                  ? "Jeu de filtres au-dessus ou au-dessous de l'objectif : les grades 4 et 5 demanderont chacun une réduction d'un stop sur la sonde."
+                  : "Filtration intégrée à la tête : les grades 4 et 5 ne demandent aucune réduction d'exposition."}
+              </p>
               {session.sourceLumiere === 'led_froide' && (
                 <p className="calib-plaus calib-plaus-warn">
                   ⚠ La calibration d'usine est prévue pour l'halogène et sera très éloignée. Point de départ recommandé
@@ -378,7 +399,9 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
               <Reminders
                 items={[
                   'Lampe inactinique éteinte à chaque mesure de la sonde.',
-                  "Ne plus toucher à l'ouverture, à la hauteur de tête ni au bouton X : le réglage d'exposition reste celui de la mise en place.",
+                  session.typeFiltration === 'filtres_standards'
+                    ? "Ne plus toucher à l'ouverture, à la hauteur de tête ni au bouton X. Seule exception : la réduction d'un stop sur la sonde aux grades 4 et 5."
+                    : "Ne plus toucher à l'ouverture, à la hauteur de tête ni au bouton X : le réglage d'exposition reste celui de la mise en place.",
                   'Bande trop sombre → correction négative. Bande trop claire → correction positive.',
                   'Les demi-grades sont interpolés automatiquement par la sonde : ne rien saisir pour eux.',
                   "Le pas est propre à chaque grade et entre dans le calcul : une bande d'écart vaut 3 unités au pas 1/4, 2 au pas 1/6, 1 au pas 1/12. Saisir le pas réellement utilisé pour la bande.",
@@ -400,16 +423,11 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   <div key={grade} className="calib-grade">
                     <div className="calib-grade-head">
                       <strong>Grade {grade}</strong>
-                      {grade === '4' && (
+                      {(grade === '4' || grade === '5') && session.typeFiltration === 'filtres_standards' && (
                         <span className="calib-note">
-                          Filtres standards (au-dessus ou au-dessous de l'objectif) : réduire l'exposition d'un stop
-                          entier avant cette bande — {pressesForOneStop(entry.pas)} fois « − » au pas {entry.pas}. Sans
-                          objet sur une tête dichroïque.
-                        </span>
-                      )}
-                      {grade === '5' && (
-                        <span className="calib-note">
-                          Si le grade 4 a été réduit d'un stop, conserver ce réglage tel quel
+                          Avant cette bande : sur la sonde, abaisser le temps d'un stop entier —{' '}
+                          {pressesForOneStop(entry.pas)} fois « − » au pas {entry.pas}. À faire au grade 4{' '}
+                          <strong>comme</strong> au grade 5.
                         </span>
                       )}
                     </div>
