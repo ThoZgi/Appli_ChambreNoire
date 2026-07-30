@@ -133,7 +133,8 @@ export const CALIBRATION_FILTRATION_LABELS: Record<CalibrationFiltration, string
 }
 
 export const CALIBRATION_SOURCE_LABELS: Record<CalibrationSource, string> = {
-  halogene: 'Halogène',
+  // L'halogène est une variante de l'incandescence : même famille, même comportement pour la sonde.
+  halogene: 'Incandescent / halogène',
   led_froide: 'LED / lumière froide',
   autre: 'Autre',
 }

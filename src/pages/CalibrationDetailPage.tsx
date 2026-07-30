@@ -304,11 +304,17 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   ? "Jeu de filtres au-dessus ou au-dessous de l'objectif : les grades 4 et 5 demanderont chacun une réduction d'un stop sur la sonde."
                   : "Filtration intégrée à la tête : les grades 4 et 5 ne demandent aucune réduction d'exposition."}
               </p>
+              {session.sourceLumiere === 'halogene' && (
+                <p className="muted">
+                  Lampe à filament — opale classique comme halogène : même famille, même comportement pour la sonde.
+                  C'est la source pour laquelle elle est calibrée d'usine.
+                </p>
+              )}
               {session.sourceLumiere === 'led_froide' && (
                 <p className="calib-plaus calib-plaus-warn">
-                  ⚠ La calibration d'usine est prévue pour l'halogène et sera très éloignée. Point de départ recommandé
-                  par RH Designs : réduire de 2 à 3 stops (24 à 36 unités) sur tous les grades, puis affiner par la
-                  procédure normale.
+                  ⚠ La calibration d'usine est prévue pour une source à filament et sera très éloignée. Point de départ
+                  recommandé par RH Designs : réduire de 2 à 3 stops (24 à 36 unités) sur tous les grades, puis affiner
+                  par la procédure normale.
                 </p>
               )}
             </section>
