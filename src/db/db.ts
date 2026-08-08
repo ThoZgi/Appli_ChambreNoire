@@ -15,6 +15,7 @@ import {
 } from '../types'
 import type { ChemistryStep, DodgeBurnZone, GradeTestStrip, LocalizedBandeTest } from '../types'
 import type { ChimieStockUsage } from '../utils/chimieCapacity'
+import { scheduleAutoBackup } from '../utils/autoBackup'
 
 interface ChambreNoireDB extends DBSchema {
   photos: {
@@ -223,6 +224,7 @@ export async function addPhoto(data: Omit<Photo, 'id' | 'createdAt'>): Promise<P
   const photo: Photo = { ...data, id: makeId(), createdAt: Date.now() }
   const db = await getDB()
   await db.put('photos', photo)
+  scheduleAutoBackup()
   return photo
 }
 
@@ -243,6 +245,7 @@ export async function setPhotoImage(photoId: string, imageBlob: Blob): Promise<v
   const photo = await db.get('photos', photoId)
   if (!photo) return
   await db.put('photos', { ...photo, imageBlob })
+  scheduleAutoBackup()
 }
 
 export async function deletePhoto(id: string): Promise<void> {
@@ -256,18 +259,21 @@ export async function deletePhoto(id: string): Promise<void> {
     cursor = await cursor.continue()
   }
   await tx.done
+  scheduleAutoBackup()
 }
 
 export async function addTirage(data: Omit<Tirage, 'id' | 'createdAt'>): Promise<Tirage> {
   const tirage: Tirage = { ...data, id: makeId(), createdAt: Date.now() }
   const db = await getDB()
   await db.put('tirages', tirage)
+  scheduleAutoBackup()
   return tirage
 }
 
 export async function updateTirage(tirage: Tirage): Promise<void> {
   const db = await getDB()
   await db.put('tirages', tirage)
+  scheduleAutoBackup()
 }
 
 export async function getTirages(photoId: string): Promise<Tirage[]> {
@@ -285,12 +291,14 @@ export async function getTirage(id: string): Promise<Tirage | undefined> {
 export async function deleteTirage(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('tirages', id)
+  scheduleAutoBackup()
 }
 
 export async function addDeveloppement(data: Omit<Developpement, 'id' | 'createdAt'>): Promise<Developpement> {
   const developpement: Developpement = { ...data, id: makeId(), createdAt: Date.now() }
   const db = await getDB()
   await db.put('developpements', developpement)
+  scheduleAutoBackup()
   return developpement
 }
 
@@ -309,17 +317,20 @@ export async function getDeveloppement(id: string): Promise<Developpement | unde
 export async function updateDeveloppement(developpement: Developpement): Promise<void> {
   const db = await getDB()
   await db.put('developpements', developpement)
+  scheduleAutoBackup()
 }
 
 export async function deleteDeveloppement(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('developpements', id)
+  scheduleAutoBackup()
 }
 
 export async function addChimieStock(data: Omit<ChimieStock, 'id' | 'createdAt'>): Promise<ChimieStock> {
   const stock: ChimieStock = { ...data, id: makeId(), createdAt: Date.now() }
   const db = await getDB()
   await db.put('chimieStocks', stock)
+  scheduleAutoBackup()
   return stock
 }
 
@@ -338,11 +349,13 @@ export async function getChimieStock(id: string): Promise<ChimieStock | undefine
 export async function updateChimieStock(stock: ChimieStock): Promise<void> {
   const db = await getDB()
   await db.put('chimieStocks', stock)
+  scheduleAutoBackup()
 }
 
 export async function deleteChimieStock(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('chimieStocks', id)
+  scheduleAutoBackup()
 }
 
 export async function addCalibration(
@@ -351,6 +364,7 @@ export async function addCalibration(
   const session: CalibrationSession = { ...data, id: makeId(), createdAt: Date.now() }
   const db = await getDB()
   await db.put('calibrations', session)
+  scheduleAutoBackup()
   return session
 }
 
@@ -369,11 +383,13 @@ export async function getCalibration(id: string): Promise<CalibrationSession | u
 export async function updateCalibration(session: CalibrationSession): Promise<void> {
   const db = await getDB()
   await db.put('calibrations', session)
+  scheduleAutoBackup()
 }
 
 export async function deleteCalibration(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('calibrations', id)
+  scheduleAutoBackup()
 }
 
 export interface BackupData {
@@ -414,6 +430,7 @@ export async function restoreAllData(data: BackupData): Promise<void> {
   for (const stock of data.chimieStocks) await tx.objectStore('chimieStocks').put(stock)
   for (const session of data.calibrations) await tx.objectStore('calibrations').put(session)
   await tx.done
+  scheduleAutoBackup()
 }
 
 export async function countChimieStockUsages(stockId: string): Promise<ChimieStockUsage> {

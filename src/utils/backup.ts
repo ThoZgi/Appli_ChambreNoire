@@ -44,9 +44,10 @@ async function deserializeRecords<T>(records: unknown[], blobField: keyof T): Pr
   )
 }
 
-export async function exportBackupFile(): Promise<void> {
+/** Sauvegarde complète prête à sérialiser. Partagée par l'export manuel et l'automatique. */
+export async function buildBackupPayload(): Promise<SerializedBackup> {
   const data = await exportAllData()
-  const serialized: SerializedBackup = {
+  return {
     version: data.version,
     exportedAt: data.exportedAt,
     photos: await serializeRecords(data.photos, 'imageBlob'),
@@ -55,6 +56,10 @@ export async function exportBackupFile(): Promise<void> {
     chimieStocks: data.chimieStocks,
     calibrations: data.calibrations,
   }
+}
+
+export async function exportBackupFile(): Promise<void> {
+  const serialized = await buildBackupPayload()
   const json = JSON.stringify(serialized)
   const blob = new Blob([json], { type: 'application/json' })
   const date = new Date().toISOString().slice(0, 10)
