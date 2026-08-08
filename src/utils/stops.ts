@@ -107,6 +107,44 @@ export function stopMultiplesOf(unitStops: number, maxCount = 12, maxStops = 2):
   return out
 }
 
+/**
+ * Composition d'une valeur de zone : une base grossière PLUS un complément fin.
+ * Les deux rangées s'additionnent au lieu de se filtrer, pour composer "1 + 1/4"
+ * dans l'ordre où on le pense. Ce qui ne tombe pas dans la grille se rattrape au 1/12.
+ */
+export const STOP_BASES: { value: number; label: string }[] = [0, 1 / 2, 1, 3 / 2, 2, 3].map((value) => ({
+  value,
+  label: value === 0 ? '0' : formatStops(value),
+}))
+
+export const STOP_COMPLEMENTS: { value: number; label: string }[] = [0, 1 / 12, 1 / 8, 1 / 6, 1 / 4, 1 / 3].map(
+  (value) => ({ value, label: value === 0 ? '0' : formatStops(value) }),
+)
+
+/** Valeurs les plus courantes, pour aller vite sans passer par les secondes. */
+export const STOP_QUICK: { value: number; label: string }[] = [1 / 4, 1 / 3, 1 / 2, 1].map((value) => ({
+  value,
+  label: formatStops(value),
+}))
+
+/** Grain du réglage fin : le plus petit cran usuel, qui permet d'atteindre tout le reste. */
+export const STOP_NUDGE = 1 / 12
+export const STOP_MIN = 1 / 12
+export const STOP_MAX = 4
+
+/**
+ * Décompose une valeur en (base, complément). La base est toujours définie — la plus grande
+ * qui tienne dans la valeur — pour qu'un réglage fin hors grille ne fasse pas perdre la base
+ * au clic suivant. `exact` dit si le complément tombe sur une pastille proposée.
+ */
+export function splitStops(stops: number): { base: number; complement: number; exact: boolean } {
+  const bases = STOP_BASES.map((b) => b.value).sort((a, b) => b - a)
+  const base = bases.find((b) => b <= stops + TOLERANCE) ?? 0
+  const complement = stops - base
+  const exact = STOP_COMPLEMENTS.some((c) => Math.abs(c.value - complement) < TOLERANCE)
+  return { base, complement, exact }
+}
+
 /** Seul endroit où la valeur décimale sert : convertir un écart en stops vers un temps en secondes. */
 export function computeStepTime(tempsDepart: string, incrementStops: number, index: number): number {
   const base = parseFloat(tempsDepart) || 0

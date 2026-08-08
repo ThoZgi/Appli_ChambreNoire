@@ -38,6 +38,13 @@ type SaveStatus = 'idle' | 'saving' | 'saved'
 
 type PhaseKey = 'materiel' | 'exposition' | 'tirage' | 'notes'
 
+const PHASES: { key: PhaseKey; label: string }[] = [
+  { key: 'materiel', label: '1. Matériel & chimie' },
+  { key: 'exposition', label: "2. Exposition" },
+  { key: 'tirage', label: '3. Tirage & finitions' },
+  { key: 'notes', label: '4. Notes' },
+]
+
 export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: TirageDetailPageProps) {
   const [tirage, setTirage] = useState<Tirage | null>(null)
   const [chimieStocks, setChimieStocks] = useState<ChimieStock[]>([])
@@ -47,34 +54,14 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [locked, setLocked] = useState(!startUnlocked)
   const [exporting, setExporting] = useState(false)
-  const [openPhases, setOpenPhases] = useState<Record<PhaseKey, boolean>>({
-    materiel: true,
-    exposition: true,
-    tirage: true,
-    notes: true,
-  })
+  // Une seule phase affichée à la fois : la page entière tenait autrement dans un seul défilement.
+  const [phase, setPhase] = useState<PhaseKey>('materiel')
   const saveTimeout = useRef<number | null>(null)
   const skipNextSave = useRef(true)
-  const phaseRefs = useRef<Record<PhaseKey, HTMLDivElement | null>>({
-    materiel: null,
-    exposition: null,
-    tirage: null,
-    notes: null,
-  })
 
-  function togglePhase(key: PhaseKey) {
-    setOpenPhases((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  function openAndScroll(key: PhaseKey) {
-    setOpenPhases((prev) => ({ ...prev, [key]: true }))
-    requestAnimationFrame(() => {
-      phaseRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }
-
-  function closePhase(key: PhaseKey) {
-    setOpenPhases((prev) => ({ ...prev, [key]: false }))
+  function goToPhase(key: PhaseKey) {
+    setPhase(key)
+    window.scrollTo({ top: 0 })
   }
 
   useEffect(() => {
@@ -166,6 +153,10 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
   if (loading) return <p className="muted">Chargement…</p>
   if (!tirage) return <p className="muted">Tirage introuvable.</p>
 
+  const phaseIndex = PHASES.findIndex((p) => p.key === phase)
+  const previousPhase = PHASES[phaseIndex - 1]
+  const nextPhase = PHASES[phaseIndex + 1]
+
   return (
     <div className="page">
       <div className="page-header">
@@ -254,22 +245,13 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
         </section>
       )}
 
-      <nav className="phase-quicknav" aria-label="Navigation rapide">
-        {(
-          [
-            ['materiel', '1'],
-            ['exposition', '2'],
-            ['tirage', '3'],
-            ['notes', '4'],
-          ] as [PhaseKey, string][]
-        ).map(([key, label]) => (
+      <nav className="phase-tabs" aria-label="Étapes du tirage">
+        {PHASES.map(({ key, label }) => (
           <button
             key={key}
             type="button"
-            className={openPhases[key] ? 'phase-quicknav-btn phase-quicknav-btn-active' : 'phase-quicknav-btn'}
-            onClick={() => openAndScroll(key)}
-            onDoubleClick={() => closePhase(key)}
-            title={`Ouvrir la section ${label} (double-clic pour la fermer)`}
+            className={phase === key ? 'phase-tab phase-tab-active' : 'phase-tab'}
+            onClick={() => goToPhase(key)}
           >
             {label}
           </button>
@@ -277,16 +259,8 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
       </nav>
 
       <div className={locked ? 'tirage-sections page-locked' : 'tirage-sections'}>
-        <div
-          className="phase"
-          ref={(el) => {
-            phaseRefs.current.materiel = el
-          }}
-        >
-          <button type="button" className="phase-title" onClick={() => togglePhase('materiel')}>
-            1. Matériel &amp; chimie {openPhases.materiel ? '▾' : '▸'}
-          </button>
-          {openPhases.materiel && (
+        <div className="phase">
+          {phase === 'materiel' && (
             <>
               <MaterielPapierForm
                 value={tirage.exposition}
@@ -301,18 +275,8 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               />
             </>
           )}
-        </div>
 
-        <div
-          className="phase"
-          ref={(el) => {
-            phaseRefs.current.exposition = el
-          }}
-        >
-          <button type="button" className="phase-title" onClick={() => togglePhase('exposition')}>
-            2. Détermination de l'exposition {openPhases.exposition ? '▾' : '▸'}
-          </button>
-          {openPhases.exposition && (
+          {phase === 'exposition' && (
             <>
               <div className="stops-row">
                 <span className="field-label-inline">Méthode d'exposition :</span>
@@ -369,36 +333,25 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               </section>
             </>
           )}
-        </div>
 
-        <div
-          className="phase"
-          ref={(el) => {
-            phaseRefs.current.tirage = el
-          }}
-        >
-          <button type="button" className="phase-title" onClick={() => togglePhase('tirage')}>
-            3. Tirage &amp; finitions {openPhases.tirage ? '▾' : '▸'}
-          </button>
-          {openPhases.tirage && (
+          {phase === 'tirage' && (
             <>
-              <div className="stops-row">
-                <span className="field-label-inline">Mode de retouche :</span>
+              <nav className="sub-tabs" aria-label="Mode de retouche">
                 <button
                   type="button"
-                  className={tirage.modeRetouche === 'basique' ? 'chip chip-active' : 'chip'}
+                  className={tirage.modeRetouche === 'basique' ? 'sub-tab sub-tab-active' : 'sub-tab'}
                   onClick={() => updateField('modeRetouche', 'basique' as ModeRetouche)}
                 >
                   Dodge &amp; Burn
                 </button>
                 <button
                   type="button"
-                  className={tirage.modeRetouche === 'splitGrading' ? 'chip chip-active' : 'chip'}
+                  className={tirage.modeRetouche === 'splitGrading' ? 'sub-tab sub-tab-active' : 'sub-tab'}
                   onClick={() => updateField('modeRetouche', 'splitGrading' as ModeRetouche)}
                 >
                   Split grading
                 </button>
-              </div>
+              </nav>
 
               {tirage.modeRetouche === 'splitGrading' && (
                 <SplitGradingForm
@@ -424,10 +377,6 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
 
                   <section className="card">
                     <h2>Dodge &amp; Burn</h2>
-                    <p className="muted">
-                      Dessinez au doigt (ou au stylet/à la souris) les zones à éclaircir (dodge) ou assombrir (burn),
-                      avec la valeur en stops.
-                    </p>
                     <DodgeBurnCanvas
                       photoBlob={tirage.printImageBlob}
                       zones={tirage.dodgeBurnZones}
@@ -445,22 +394,12 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
               )}
             </>
           )}
-        </div>
 
-        <div
-          className="phase"
-          ref={(el) => {
-            phaseRefs.current.notes = el
-          }}
-        >
-          <button type="button" className="phase-title" onClick={() => togglePhase('notes')}>
-            4. Notes {openPhases.notes ? '▾' : '▸'}
-          </button>
-          {openPhases.notes && (
+          {phase === 'notes' && (
             <section className="card">
               <textarea
                 className="field-input"
-                rows={4}
+                rows={6}
                 value={tirage.notes}
                 onChange={(e) => updateField('notes', e.target.value)}
                 placeholder="Observations sur le résultat final, corrections à apporter au prochain tirage..."
@@ -468,6 +407,19 @@ export default function TirageDetailPage({ tirageId, startUnlocked, onBack }: Ti
             </section>
           )}
         </div>
+      </div>
+
+      <div className="phase-nav">
+        {previousPhase && (
+          <button type="button" className="btn-link" onClick={() => goToPhase(previousPhase.key)}>
+            ← {previousPhase.label}
+          </button>
+        )}
+        {nextPhase && (
+          <button type="button" className="btn-primary" onClick={() => goToPhase(nextPhase.key)}>
+            {nextPhase.label} →
+          </button>
+        )}
       </div>
     </div>
   )

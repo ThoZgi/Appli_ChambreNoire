@@ -9,6 +9,7 @@ import ChimieStockDetailPage from './pages/ChimieStockDetailPage'
 import CalibrationListPage from './pages/CalibrationListPage'
 import CalibrationDetailPage from './pages/CalibrationDetailPage'
 import ParametresPage from './pages/ParametresPage'
+import GradusLogo from './components/GradusLogo'
 
 type View =
   | { name: 'photos' }
@@ -49,7 +50,7 @@ export default function App() {
   return (
     <>
       <nav className="main-nav">
-        <span className="main-nav-title">Labo photo / Carnet de Bord</span>
+        <GradusLogo />
         <button
           type="button"
           className={section(view) === 'developpements' ? 'main-nav-tab main-nav-tab-active' : 'main-nav-tab'}

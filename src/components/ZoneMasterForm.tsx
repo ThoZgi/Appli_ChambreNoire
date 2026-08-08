@@ -15,10 +15,6 @@ export default function ZoneMasterForm({ value, onChange }: ZoneMasterFormProps)
   return (
     <section className="card">
       <h2>Sonde ZoneMaster II</h2>
-      <p className="muted">
-        Mesurez un point dans les hautes lumières et un point dans les ombres où vous voulez encore du détail, puis
-        placez ces zones sur l'appareil pour obtenir le temps et le grade recommandés.
-      </p>
 
       <div className="field-row">
         <label className="field-label">

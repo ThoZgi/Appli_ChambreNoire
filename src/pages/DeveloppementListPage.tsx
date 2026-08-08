@@ -35,6 +35,7 @@ export default function DeveloppementListPage({ onSelectDeveloppement }: Develop
   const [sortBy, setSortBy] = useState<SortBy>('date')
   const [showForm, setShowForm] = useState(false)
   const [format, setFormat] = useState('')
+  const [customFormat, setCustomFormat] = useState(false)
   const [filmStock, setFilmStock] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -53,6 +54,7 @@ export default function DeveloppementListPage({ onSelectDeveloppement }: Develop
     const nom = generateNom(format, filmStock, developpements)
     const developpement = await addDeveloppement({ ...emptyDeveloppement(), nom, format, filmStock })
     setFormat('')
+    setCustomFormat(false)
     setFilmStock('')
     setShowForm(false)
     await refresh()
@@ -93,17 +95,35 @@ export default function DeveloppementListPage({ onSelectDeveloppement }: Develop
                 key={preset}
                 type="button"
                 className={format === preset ? 'chip chip-active' : 'chip'}
-                onClick={() => setFormat(preset)}
+                onClick={() => {
+                  setFormat(preset)
+                  setCustomFormat(false)
+                }}
               >
                 {preset}
               </button>
             ))}
-            <input
-              className="field-input stops-custom"
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-              placeholder="ex : 24x36"
-            />
+            {/* Le champ libre restait affiché en permanence et se remplissait au clic sur une
+                pastille : il donnait l'impression de répéter la sélection. */}
+            <button
+              type="button"
+              className={customFormat ? 'chip chip-active' : 'chip'}
+              onClick={() => {
+                setCustomFormat(true)
+                setFormat('')
+              }}
+            >
+              Autre…
+            </button>
+            {customFormat && (
+              <input
+                className="field-input stops-custom"
+                value={format}
+                onChange={(e) => setFormat(e.target.value)}
+                placeholder="ex : 6x4.5"
+                autoFocus
+              />
+            )}
           </div>
           <label className="field-label">
             Pellicule / film
