@@ -54,10 +54,6 @@ export default function BandeTestForm({
   return (
     <section className="card">
       <h2>{title}</h2>
-      <p className="muted">
-        Temps de départ et incrément en stops (comme sur le StopClock Pro) : le temps de chaque palier est calculé
-        automatiquement.
-      </p>
 
       <div className="field-row">
         <label className="field-label">

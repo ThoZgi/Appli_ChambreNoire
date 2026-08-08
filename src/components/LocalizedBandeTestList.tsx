@@ -131,11 +131,6 @@ export default function LocalizedBandeTestList({
   return (
     <section className="card">
       <h3>{title}</h3>
-      <p className="muted">
-        Informatif : repérez un point sur le tirage puis faites une bande test à cet endroit. Le résultat sert
-        uniquement de référence — dessinez vos zones dodge &amp; burn librement, sans lien automatique avec ce
-        repère.
-      </p>
 
       {imageUrl && (
         <>

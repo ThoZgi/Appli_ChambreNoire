@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CircuitTrace, DodgeBurnType, DodgeBurnZone } from '../types'
 import { useObjectUrl } from '../hooks/useObjectUrl'
-import { STOP_PRESETS, stopMultiplesOf } from '../utils/stops'
+import { STOP_MAX, STOP_MIN, STOP_NUDGE, STOP_QUICK, formatStops } from '../utils/stops'
 import { FILTER_GRADE_PRESETS } from '../utils/formats'
-import { baseExpositionLabel, renderCircuitsOnCanvas, renderZonesOnCanvas, zoneActionLabel } from '../utils/dodgeBurnRender'
+import {
+  baseExpositionLabel,
+  computeZoneSeconds,
+  renderCircuitsOnCanvas,
+  renderZonesOnCanvas,
+  stopsFromZoneSeconds,
+  zoneActionLabel,
+} from '../utils/dodgeBurnRender'
 import NumberStepper from './NumberStepper'
 import SelectOrCustom from './SelectOrCustom'
 
@@ -18,6 +25,13 @@ interface DodgeBurnCanvasProps {
   incrementStops?: number
   gradeEnabled?: boolean
   defaultGrade?: string
+}
+
+function clampStops(value: number): number {
+  // Arrondi au 1/24 : dénominateur commun aux douzièmes ET aux huitièmes, pour que
+  // l'accumulation de réglages fins ne dérive pas et qu'un complément de 1/8 survive.
+  const rounded = Math.round(value * 24) / 24
+  return Math.min(STOP_MAX, Math.max(STOP_MIN, rounded))
 }
 
 function relativePoint(
@@ -49,14 +63,43 @@ export default function DodgeBurnCanvas({
 
   const [mode, setMode] = useState<DodgeBurnType>('dodge')
   const [tool, setTool] = useState<'brush' | 'circuit'>('brush')
-  // Le pas de la bande test définit les valeurs proposées ici : on corrige par crans connus.
-  const [pas, setPas] = useState(incrementStops || 0.25)
+  // La valeur se saisit indifféremment en stops ou en secondes : les deux restent couplés.
   const [stops, setStops] = useState(incrementStops || 0.25)
+  const [secondsDraft, setSecondsDraft] = useState<string | null>(null)
 
-  // Si le pas de la bande test change, les propositions suivent.
+  const parsedBase = parseFloat(tempsBase)
+  const baseSeconds = Number.isFinite(parsedBase) && parsedBase > 0 ? parsedBase : null
+  const secondsValue = computeZoneSeconds(tempsBase, stops, mode)
+  // Pendant la frappe on garde le texte tel quel, sinon la valeur recalculée écraserait la saisie.
+  const secondsShown = secondsDraft ?? (secondsValue === null ? '' : secondsValue.toFixed(1))
+
+  // Dodge et burn ne convertissent pas pareil : la saisie en cours n'a plus de sens après bascule.
+  useEffect(() => {
+    setSecondsDraft(null)
+  }, [mode])
+
+  function applySeconds(seconds: number) {
+    const next = stopsFromZoneSeconds(tempsBase, seconds, mode)
+    // Pas d'arrondi ici : la seconde saisie fait foi, et le stop s'affiche en fraction
+    // approchée ("≈3/4"). L'arrondir sur la grille donnerait des fractions illisibles (19/24).
+    if (next !== null) setStops(Math.min(STOP_MAX, Math.max(STOP_MIN, next)))
+  }
+
+  function handleSecondsChange(value: string) {
+    setSecondsDraft(value)
+    const seconds = parseFloat(value.replace(',', '.'))
+    if (Number.isFinite(seconds)) applySeconds(seconds)
+  }
+
+  function nudgeSeconds(delta: number) {
+    if (secondsValue === null) return
+    setSecondsDraft(null)
+    applySeconds(Math.max(0.1, secondsValue + delta))
+  }
+
+  // À défaut d'autre indication, on part du pas de la bande test.
   useEffect(() => {
     if (!incrementStops) return
-    setPas(incrementStops)
     setStops(incrementStops)
   }, [incrementStops])
   const [brushSize, setBrushSize] = useState(0.03)
@@ -335,25 +378,41 @@ export default function DodgeBurnCanvas({
         )}
 
         <div className="stops-row">
-          <span className="field-label-inline stops-group-label">Pas</span>
-          {STOP_PRESETS.map((preset) => (
-            <button
-              key={preset.value}
-              type="button"
-              className={Math.abs(pas - preset.value) < 0.0005 ? 'chip chip-active' : 'chip'}
-              onClick={() => {
-                setPas(preset.value)
-                setStops(preset.value)
-              }}
-            >
-              {preset.label}
-            </button>
-          ))}
+          <span className="field-label-inline stops-group-label">Temps de base</span>
+          {baseSeconds === null ? (
+            <span className="calib-plaus calib-plaus-warn">
+              ⚠ Renseignez le temps d'exposition générale pour travailler en secondes
+            </span>
+          ) : (
+            <span className="stop-total">{baseSeconds.toFixed(2)} s</span>
+          )}
         </div>
 
         <div className="stops-row">
           <span className="field-label-inline stops-group-label">Valeur</span>
-          {stopMultiplesOf(pas).map((choice) => (
+          <button
+            type="button"
+            className="chip"
+            onClick={() => setStops(clampStops(stops - STOP_NUDGE))}
+            disabled={stops <= STOP_MIN + 0.0005}
+            title="Retirer 1/12 de stop"
+          >
+            −
+          </button>
+          <span className="stop-total">
+            {mode === 'dodge' ? '−' : '+'}
+            {formatStops(stops)} stop
+          </span>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => setStops(clampStops(stops + STOP_NUDGE))}
+            disabled={stops >= STOP_MAX - 0.0005}
+            title="Ajouter 1/12 de stop"
+          >
+            +
+          </button>
+          {STOP_QUICK.map((choice) => (
             <button
               key={choice.value}
               type="button"
@@ -363,6 +422,46 @@ export default function DodgeBurnCanvas({
               {choice.label}
             </button>
           ))}
+        </div>
+
+        <div className="stops-row">
+          <span className="field-label-inline stops-group-label">
+            = {mode === 'dodge' ? 'Retenir' : 'Ajouter'}
+          </span>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => nudgeSeconds(-1)}
+            disabled={baseSeconds === null}
+            title="Une seconde de moins"
+          >
+            −
+          </button>
+          <input
+            className="field-input stop-seconds-input"
+            type="number"
+            step={0.5}
+            min={0}
+            disabled={baseSeconds === null}
+            value={secondsShown}
+            onChange={(e) => handleSecondsChange(e.target.value)}
+            onBlur={() => setSecondsDraft(null)}
+          />
+          <span className="muted">s</span>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => nudgeSeconds(1)}
+            disabled={baseSeconds === null}
+            title="Une seconde de plus"
+          >
+            +
+          </button>
+          <span className="muted">
+            {mode === 'dodge'
+              ? 'temps pendant lequel la zone est masquée'
+              : "temps ajouté après l'exposition générale"}
+          </span>
         </div>
 
         {tool === 'circuit' ? (

@@ -6,10 +6,27 @@ interface ZoneStops {
   stops: number
 }
 
-export function computeZoneSeconds(tempsBase: string, stops: number): number | null {
+/**
+ * Temps en secondes correspondant à une correction en stops.
+ * Burn : temps ajouté par-dessus l'exposition générale — base × (2^s − 1).
+ * Dodge : temps pendant lequel la zone est masquée sur le total — base × (1 − 2^−s),
+ * de sorte que la zone reçoive base × 2^−s. Masquer pendant base × (2^s − 1) reviendrait
+ * à couvrir toute l'exposition dès 1 stop.
+ */
+export function computeZoneSeconds(tempsBase: string, stops: number, type: DodgeBurnType): number | null {
   const base = parseFloat(tempsBase)
-  if (!base) return null
-  return base * (Math.pow(2, stops) - 1)
+  if (!base || !Number.isFinite(base)) return null
+  return type === 'burn' ? base * (Math.pow(2, stops) - 1) : base * (1 - Math.pow(2, -stops))
+}
+
+/** Conversion inverse, pour saisir directement en secondes. */
+export function stopsFromZoneSeconds(tempsBase: string, seconds: number, type: DodgeBurnType): number | null {
+  const base = parseFloat(tempsBase)
+  if (!base || !Number.isFinite(base) || !Number.isFinite(seconds) || seconds <= 0) return null
+  if (type === 'burn') return Math.log2(1 + seconds / base)
+  // Retenir la totalité de l'exposition ne correspond à aucune valeur finie en stops.
+  if (seconds >= base) return null
+  return -Math.log2(1 - seconds / base)
 }
 
 function formatSeconds(seconds: number): string {
@@ -27,7 +44,7 @@ export function baseExpositionLabel(tempsBase: string, grade?: string): string {
 }
 
 export function zoneActionLabel(zone: DodgeBurnZone, tempsBase: string, index: number, passGrade?: string): string {
-  const seconds = computeZoneSeconds(tempsBase, zone.stops)
+  const seconds = computeZoneSeconds(tempsBase, zone.stops, zone.type)
   const zoneName = zone.label || `zone ${index + 1}`
   const formatAmount = zone.type === 'dodge' ? formatSeconds : formatSecondsPrecise
   const stopsText = `${formatStops(zone.stops)} stop`

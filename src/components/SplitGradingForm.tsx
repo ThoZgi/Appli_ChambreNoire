@@ -1,7 +1,15 @@
+import { useState } from 'react'
 import type { CircuitTrace, DodgeBurnZone, GradeTestStrip, LocalizedBandeTest, SplitGrading } from '../types'
 import DodgeBurnCanvas from './DodgeBurnCanvas'
 import LocalizedBandeTestList from './LocalizedBandeTestList'
 import NumberStepper from './NumberStepper'
+
+type PasseKey = 'grade00' | 'gradeDur'
+
+const GRADES: { key: PasseKey; tab: string }[] = [
+  { key: 'grade00', tab: 'Grade doux' },
+  { key: 'gradeDur', tab: 'Grade dur' },
+]
 
 interface SplitGradingFormProps {
   value: SplitGrading
@@ -11,6 +19,9 @@ interface SplitGradingFormProps {
 }
 
 export default function SplitGradingForm({ value, onChange, printImageBlob, baseTemps }: SplitGradingFormProps) {
+  // Une passe à la fois : les deux blocs empilés faisaient à eux seuls deux pages entières.
+  const [passe, setPasse] = useState<PasseKey>('grade00')
+
   function updateGradeStrip(key: 'grade00' | 'gradeDur', strip: GradeTestStrip) {
     onChange({ ...value, [key]: strip })
   }
@@ -77,13 +88,22 @@ export default function SplitGradingForm({ value, onChange, printImageBlob, base
 
   return (
     <section className="card">
-      <p className="muted">
-        Recherchez le temps d'exposition au grade doux (00/0) pour les textures dans les hautes lumières, puis au
-        grade dur pour le contraste, à différents endroits du tirage. Pour chaque grade, déterminez ensuite
-        l'exposition générale de cette passe et son Dodge &amp; Burn.
-      </p>
-      {renderGradeBlock('grade00', 'grade doux', 'Grade doux — hautes lumières')}
-      {renderGradeBlock('gradeDur', 'grade dur', 'Grade dur — contraste')}
+      <nav className="sub-tabs" aria-label="Passe de split grading">
+        {GRADES.map(({ key, tab }) => (
+          <button
+            key={key}
+            type="button"
+            className={passe === key ? 'sub-tab sub-tab-active' : 'sub-tab'}
+            onClick={() => setPasse(key)}
+          >
+            {tab}
+          </button>
+        ))}
+      </nav>
+
+      {passe === 'grade00'
+        ? renderGradeBlock('grade00', 'grade doux', 'Grade doux — hautes lumières')
+        : renderGradeBlock('gradeDur', 'grade dur', 'Grade dur — contraste')}
     </section>
   )
 }

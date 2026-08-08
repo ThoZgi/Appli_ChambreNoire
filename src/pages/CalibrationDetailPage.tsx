@@ -230,10 +230,6 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   />
                 </label>
               </div>
-              <p className="muted">
-                Une calibration vaut pour un papier <em>et</em> une finition donnés : brillant et mat n'ont pas le même
-                Dmax, donc pas les mêmes lectures en étape 2.
-              </p>
               <div className="field-row">
                 <label className="field-label">
                   Agrandisseur
@@ -299,17 +295,6 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   </button>
                 ))}
               </div>
-              <p className="muted">
-                {session.typeFiltration === 'filtres_standards'
-                  ? "Jeu de filtres au-dessus ou au-dessous de l'objectif : les grades 4 et 5 demanderont chacun une réduction d'un stop sur la sonde."
-                  : "Filtration intégrée à la tête : les grades 4 et 5 ne demandent aucune réduction d'exposition."}
-              </p>
-              {session.sourceLumiere === 'halogene' && (
-                <p className="muted">
-                  Lampe à filament — opale classique comme halogène : même famille, même comportement pour la sonde.
-                  C'est la source pour laquelle elle est calibrée d'usine.
-                </p>
-              )}
               {session.sourceLumiere === 'led_froide' && (
                 <p className="calib-plaus calib-plaus-warn">
                   ⚠ La calibration d'usine est prévue pour une source à filament et sera très éloignée. Point de départ
@@ -397,11 +382,6 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
           <div className={lockClass}>
             <section className="card">
               <h2>Étape 1 — Correction d'exposition</h2>
-              <p className="muted">
-                Pour chaque grade : régler la sonde et les filtres sur ce grade, faire la bande test, développer, laver
-                et <strong>sécher</strong> avant lecture. Comparer ensuite la bande à la plage la plus foncée de la
-                pastille haute lumière et repérer la bande la plus proche.
-              </p>
               <Reminders
                 items={[
                   'Lampe inactinique éteinte à chaque mesure de la sonde.',
@@ -414,10 +394,6 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                 ]}
               />
               <div className="calib-formula">correction = écart × unités/cran + décalage × 12</div>
-              <p className="muted">
-                Le décalage ne sert que si la bande était illisible (toute blanche ou toute noire) et a dû être refaite à
-                un temps décalé d'un ou plusieurs stops entiers. Il reste à 0 dans l'immense majorité des cas.
-              </p>
             </section>
 
             <section className="card">
@@ -429,11 +405,18 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   <div key={grade} className="calib-grade">
                     <div className="calib-grade-head">
                       <strong>Grade {grade}</strong>
-                      {(grade === '4' || grade === '5') && session.typeFiltration === 'filtres_standards' && (
+                      {/* La réduction se fait UNE fois, avant le grade 4, et reste en place pour le 5.
+                          Redescendre au grade 5 mettrait cette bande à −2 stops. */}
+                      {grade === '4' && session.typeFiltration === 'filtres_standards' && (
                         <span className="calib-note">
                           Avant cette bande : sur la sonde, abaisser le temps d'un stop entier —{' '}
-                          {pressesForOneStop(entry.pas)} fois « − » au pas {entry.pas}. À faire au grade 4{' '}
-                          <strong>comme</strong> au grade 5.
+                          {pressesForOneStop(entry.pas)} fois « − » au pas {entry.pas}.
+                        </span>
+                      )}
+                      {grade === '5' && session.typeFiltration === 'filtres_standards' && (
+                        <span className="calib-note">
+                          Garder le réglage abaissé du grade 4. <strong>Ne pas redescendre</strong> : cette bande se
+                          fait au même réglage, à −1 stop.
                         </span>
                       )}
                     </div>
@@ -631,9 +614,6 @@ export default function CalibrationDetailPage({ calibrationId, startUnlocked, on
                   pastille haute lumière (0,04 log.D). Les demi-valeurs sont encouragées (ex : 15,5).
                 </p>
                 <div className="calib-formula">ISO(R) = (case haute lumière − case ombre) × 15</div>
-                <p className="muted">
-                  Chaque case de la gamme vaut 1/2 stop, et 30 unités ISO(R) valent 1 stop — d'où 15 par case.
-                </p>
               </section>
 
               <section className="card">

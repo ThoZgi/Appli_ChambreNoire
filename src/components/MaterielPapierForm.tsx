@@ -65,13 +65,6 @@ export default function MaterielPapierForm({ value, onChange }: MaterielPapierFo
           </button>
         ))}
       </div>
-      {value.typeEclairage === 'condenseur' && (
-        <p className="muted">
-          Un condenseur rend environ un grade plus contrasté qu'une tête à diffusion, et marque davantage les
-          poussières et rayures du négatif.
-        </p>
-      )}
-
       <h3>Papier</h3>
       <div className="field-row">
         <label className="field-label">
